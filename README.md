@@ -59,4 +59,4 @@ npm run dev
 
 ## Autor
 
-Proyecto para Módulo 2 - Gestión de las Tecnologías de la Información
+Sofia Castellanos Lobo
