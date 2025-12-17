@@ -1,0 +1,311 @@
+{
+  "primavera": {
+    "colores_base": [
+      "coral",
+      "durazno",
+      "turquesa",
+      "verde menta",
+      "amarillo cálido"
+    ],
+    "descripcion": "Colores cálidos y brillantes que reflejan la frescura de la primavera",
+    "outfits": [
+      {
+        "id": "pri_casual_01",
+        "nombre": "Look Coral Fresco",
+        "descripcion": "Blusa coral con jeans claros",
+        "ocasion": "casual",
+        "prendas": [
+          "blusa coral",
+          "jeans claros",
+          "sandalias beige"
+        ],
+        "colores": [
+          "#FF7F50",
+          "#E8E4D9",
+          "#D4A574"
+        ]
+      },
+      {
+        "id": "pri_casual_02",
+        "nombre": "Vestido Primaveral",
+        "descripcion": "Vestido floral en tonos cálidos",
+        "ocasion": "casual",
+        "prendas": [
+          "vestido floral",
+          "cardigan beige",
+          "flats nude"
+        ],
+        "colores": [
+          "#FFB6C1",
+          "#FFDAB9",
+          "#F5DEB3"
+        ]
+      },
+      {
+        "id": "pri_formal_01",
+        "nombre": "Oficina Elegante",
+        "descripcion": "Blazer durazno con pantalón crema",
+        "ocasion": "formal",
+        "prendas": [
+          "blazer durazno",
+          "blusa blanca",
+          "pantalón crema",
+          "tacones nude"
+        ],
+        "colores": [
+          "#FFCBA4",
+          "#FFFFFF",
+          "#FFFDD0"
+        ]
+      },
+      {
+        "id": "pri_formal_02",
+        "nombre": "Traje Clásico Primavera",
+        "descripcion": "Traje en tono cálido para hombre",
+        "ocasion": "formal",
+        "genero": "masculino",
+        "prendas": [
+          "traje beige",
+          "camisa celeste",
+          "corbata coral"
+        ],
+        "colores": [
+          "#D4A574",
+          "#87CEEB",
+          "#FF7F50"
+        ]
+      }
+    ]
+  },
+  "verano": {
+    "colores_base": [
+      "rosa palo",
+      "lavanda",
+      "azul cielo",
+      "gris perla",
+      "verde salvia"
+    ],
+    "descripcion": "Colores suaves y fríos que complementan el subtono rosado",
+    "outfits": [
+      {
+        "id": "ver_casual_01",
+        "nombre": "Look Lavanda Suave",
+        "descripcion": "Blusa lavanda con pantalón gris",
+        "ocasion": "casual",
+        "prendas": [
+          "blusa lavanda",
+          "pantalón gris",
+          "zapatillas blancas"
+        ],
+        "colores": [
+          "#E6E6FA",
+          "#A9A9A9",
+          "#FFFFFF"
+        ]
+      },
+      {
+        "id": "ver_casual_02",
+        "nombre": "Vestido Rosa Empolvado",
+        "descripcion": "Vestido midi en rosa suave",
+        "ocasion": "casual",
+        "prendas": [
+          "vestido rosa palo",
+          "cardigan gris",
+          "sandalias plateadas"
+        ],
+        "colores": [
+          "#FFB6C1",
+          "#C0C0C0",
+          "#E8E8E8"
+        ]
+      },
+      {
+        "id": "ver_formal_01",
+        "nombre": "Elegancia Veraniega",
+        "descripcion": "Traje en tonos fríos suaves",
+        "ocasion": "formal",
+        "prendas": [
+          "blazer gris perla",
+          "blusa rosa",
+          "falda azul cielo"
+        ],
+        "colores": [
+          "#D3D3D3",
+          "#FFB6C1",
+          "#87CEEB"
+        ]
+      },
+      {
+        "id": "ver_formal_02",
+        "nombre": "Ejecutivo Verano",
+        "descripcion": "Look formal masculino en tonos fríos",
+        "ocasion": "formal",
+        "genero": "masculino",
+        "prendas": [
+          "traje gris claro",
+          "camisa azul claro",
+          "corbata lavanda"
+        ],
+        "colores": [
+          "#A9A9A9",
+          "#ADD8E6",
+          "#E6E6FA"
+        ]
+      }
+    ]
+  },
+  "otono": {
+    "colores_base": [
+      "terracota",
+      "mostaza",
+      "verde oliva",
+      "burdeos",
+      "naranja quemado"
+    ],
+    "descripcion": "Colores cálidos y profundos inspirados en los tonos de otoño",
+    "outfits": [
+      {
+        "id": "oto_casual_01",
+        "nombre": "Look Terracota",
+        "descripcion": "Suéter terracota con jeans oscuros",
+        "ocasion": "casual",
+        "prendas": [
+          "suéter terracota",
+          "jeans oscuros",
+          "botines café"
+        ],
+        "colores": [
+          "#E2725B",
+          "#2F4F4F",
+          "#8B4513"
+        ]
+      },
+      {
+        "id": "oto_casual_02",
+        "nombre": "Estilo Mostaza",
+        "descripcion": "Cardigan mostaza con falda verde oliva",
+        "ocasion": "casual",
+        "prendas": [
+          "cardigan mostaza",
+          "blusa crema",
+          "falda verde oliva"
+        ],
+        "colores": [
+          "#FFDB58",
+          "#FFFDD0",
+          "#808000"
+        ]
+      },
+      {
+        "id": "oto_formal_01",
+        "nombre": "Oficina Otoñal",
+        "descripcion": "Blazer burdeos con pantalón mostaza",
+        "ocasion": "formal",
+        "prendas": [
+          "blazer burdeos",
+          "blusa crema",
+          "pantalón mostaza"
+        ],
+        "colores": [
+          "#722F37",
+          "#FFFDD0",
+          "#FFDB58"
+        ]
+      },
+      {
+        "id": "oto_formal_02",
+        "nombre": "Ejecutivo Otoño",
+        "descripcion": "Traje en tonos tierra para hombre",
+        "ocasion": "formal",
+        "genero": "masculino",
+        "prendas": [
+          "traje café",
+          "camisa beige",
+          "corbata terracota"
+        ],
+        "colores": [
+          "#8B4513",
+          "#F5DEB3",
+          "#E2725B"
+        ]
+      }
+    ]
+  },
+  "invierno": {
+    "colores_base": [
+      "negro",
+      "blanco puro",
+      "rojo intenso",
+      "azul marino",
+      "fucsia"
+    ],
+    "descripcion": "Colores intensos y contrastantes que realzan el alto contraste natural",
+    "outfits": [
+      {
+        "id": "inv_casual_01",
+        "nombre": "Look Blanco y Negro",
+        "descripcion": "Clásico monocromático con acento de color",
+        "ocasion": "casual",
+        "prendas": [
+          "suéter negro",
+          "pantalón blanco",
+          "accesorios rojos"
+        ],
+        "colores": [
+          "#000000",
+          "#FFFFFF",
+          "#FF0000"
+        ]
+      },
+      {
+        "id": "inv_casual_02",
+        "nombre": "Vestido Rojo Impactante",
+        "descripcion": "Vestido rojo con accesorios negros",
+        "ocasion": "casual",
+        "prendas": [
+          "vestido rojo",
+          "blazer negro",
+          "tacones negros"
+        ],
+        "colores": [
+          "#FF0000",
+          "#000000",
+          "#1A1A1A"
+        ]
+      },
+      {
+        "id": "inv_formal_01",
+        "nombre": "Elegancia Invernal",
+        "descripcion": "Look sofisticado en azul marino",
+        "ocasion": "formal",
+        "prendas": [
+          "blazer azul marino",
+          "blusa blanca",
+          "falda negra"
+        ],
+        "colores": [
+          "#000080",
+          "#FFFFFF",
+          "#000000"
+        ]
+      },
+      {
+        "id": "inv_formal_02",
+        "nombre": "Ejecutivo Invierno",
+        "descripcion": "Traje negro clásico con camisa blanca",
+        "ocasion": "formal",
+        "genero": "masculino",
+        "prendas": [
+          "traje negro",
+          "camisa blanca",
+          "corbata azul marino"
+        ],
+        "colores": [
+          "#000000",
+          "#FFFFFF",
+          "#000080"
+        ]
+      }
+    ]
+  }
+}
