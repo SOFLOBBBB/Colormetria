@@ -1,38 +1,15 @@
-# Python
-__pycache__/
-*.py[cod]
-*$py.class
-*.so
-.Python
-venv/
-env/
-.env
-*.egg-info/
-dist/
-build/
-
-# Node
-node_modules/
-npm-debug.log*
-
-# IDE
-.idea/
-.vscode/
-*.swp
-*.swo
 .DS_Store
-
-# Database
+*.pyc
+__pycache__/
+venv/
+.venv/
+node_modules/
+dist/
 *.db
-*.sqlite3
-
-# Logs
 *.log
-
-# Models (very large files)
-backend/modelos/*.pth
-backend/modelos/*.bin
-
-# Build
+backend/colormetria.db
+backend/server.log
+backend/venv/
+backend/modelos/
+backend/ml/modelos/
 frontend/dist/
-

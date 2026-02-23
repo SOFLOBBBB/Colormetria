@@ -1,13 +1,16 @@
-"""
-Módulo de Analizadores
-======================
-Contiene los analizadores para detección de rostro,
-análisis de colores y clasificación de estaciones.
-"""
+"""Analizadores de colorimetría: detección de rostro, normalización, análisis LAB y clasificación."""
 
-from .detector_rostro import DetectorRostro
+from .analizador_robusto import AnalizadorRobusto
 from .analizador_colores import AnalizadorColores
-from .clasificador_estacion import ClasificadorEstacion
+from .clasificador_robusto import ClasificadorRobusto
+from .normalizador_color import NormalizadorColor, detectar_imagen_no_confiable
+from .detector_rostro import DetectorRostro
 
-__all__ = ["DetectorRostro", "AnalizadorColores", "ClasificadorEstacion"]
-
+__all__ = [
+    "AnalizadorRobusto",
+    "AnalizadorColores",
+    "ClasificadorRobusto",
+    "NormalizadorColor",
+    "detectar_imagen_no_confiable",
+    "DetectorRostro",
+]

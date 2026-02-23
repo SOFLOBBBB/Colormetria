@@ -1,7 +1,4 @@
-"""
-Analizador de colores faciales (piel, ojos, cabello)
-Usa K-Means para encontrar colores dominantes
-"""
+"""Análisis de colores faciales (piel, ojos, cabello) con K-Means en regiones MediaPipe."""
 
 import cv2
 import numpy as np
@@ -11,39 +8,15 @@ from collections import Counter
 
 
 class AnalizadorColores:
-    """
-    Analizador de colores de alta precisión.
-    
-    Características:
-    - Usa regiones exactas de MediaPipe (mejillas, iris, etc.)
-    - K-Means++ para mejor convergencia
-    - Análisis en espacio LAB para subtonos precisos
-    - Filtrado inteligente de píxeles
-    """
-    
-    def __init__(self):
-        """Inicializa el analizador"""
-        print("✅ Analizador de colores inicializado")
-    
+    """Colores dominantes por región (mejillas, iris, cabello) y subtono en LAB."""
+
     def analizar(
         self,
         imagen: np.ndarray,
         landmarks: List[Tuple[int, int, float]],
         region_rostro: Dict[str, int],
-        regiones: Optional[Dict[str, Any]] = None
+        regiones: Optional[Dict[str, Any]] = None,
     ) -> Dict[str, Any]:
-        """
-        Analiza los colores faciales usando regiones precisas.
-        
-        Args:
-            imagen: Array numpy RGB
-            landmarks: Lista de 478 landmarks de MediaPipe
-            region_rostro: Bounding box del rostro
-            regiones: Regiones pre-extraídas por el detector
-            
-        Returns:
-            Análisis completo de colores
-        """
         # Analizar color de piel usando mejillas y frente
         color_piel = self._analizar_piel_preciso(imagen, landmarks, regiones)
         
@@ -75,11 +48,9 @@ class AnalizadorColores:
         self,
         imagen: np.ndarray,
         landmarks: List[Tuple[int, int, float]],
-        regiones: Optional[Dict[str, Any]]
+        regiones: Optional[Dict[str, Any]],
     ) -> Dict[str, Any]:
-        """
-        Analiza el color de piel usando las regiones exactas de MediaPipe.
-        """
+        """Color dominante en mejillas/frente; K-Means y filtro de brillo."""
         pixeles_piel = []
         
         # Usar regiones pre-extraídas si están disponibles
@@ -128,11 +99,9 @@ class AnalizadorColores:
         self,
         imagen: np.ndarray,
         landmarks: List[Tuple[int, int, float]],
-        regiones: Optional[Dict[str, Any]]
+        regiones: Optional[Dict[str, Any]],
     ) -> Dict[str, Any]:
-        """
-        Analiza el color de ojos usando detección de iris de MediaPipe.
-        """
+        """Color de iris/ojos; fallback a región ocular."""
         pixeles_ojos = []
         
         # Intentar usar iris detectado (más preciso)
@@ -179,11 +148,9 @@ class AnalizadorColores:
     def _analizar_cabello_preciso(
         self,
         imagen: np.ndarray,
-        region_rostro: Dict[str, int]
+        region_rostro: Dict[str, int],
     ) -> Dict[str, Any]:
-        """
-        Analiza el color del cabello en la región superior de la imagen.
-        """
+        """Color dominante en región superior y laterales (cabello)."""
         altura, ancho = imagen.shape[:2]
         x, y, w, h = region_rostro["x"], region_rostro["y"], region_rostro["ancho"], region_rostro["alto"]
         
@@ -338,25 +305,17 @@ class AnalizadorColores:
         a_norm = a - 128  # Centro en 0: negativo=verde, positivo=rojo/rosa
         b_norm = b - 128  # Centro en 0: negativo=azul, positivo=amarillo
         
-        # Análisis mejorado de subtono:
-        # - Subtono FRÍO: más rosa (a alto) y menos amarillo (b bajo)
-        # - Subtono CÁLIDO: más amarillo (b alto) y menos rosa
-        # - Subtono NEUTRO: balance entre ambos
-        
         # Ratio de calidez mejorado
         # Ponderamos más el componente a (rosa) para detectar tonos fríos
         ratio_frio = a_norm * 0.6  # Componente rosado
         ratio_calido = b_norm * 0.8  # Componente amarillo/dorado
         
         indice_neto = ratio_calido - ratio_frio
-        
-        # Umbrales ajustados para mejor detección de Verano
         if indice_neto > 8:
             return "cálido"
-        elif indice_neto < 2:  # Umbral más amplio para detectar fríos
+        if indice_neto < 2:
             return "frío"
-        else:
-            return "neutro"
+        return "neutro"
     
     def _calcular_contraste_real(
         self,
@@ -490,12 +449,7 @@ class AnalizadorColores:
         return "oscuro"
     
     def _clasificar_color_cabello(self, rgb: np.ndarray) -> str:
-        """
-        Clasifica color de cabello con mejor detección cenizo vs dorado.
-        
-        MEJORADO: Distingue mejor entre tonos fríos (cenizo) y cálidos (dorado)
-        Importante para clasificar Verano vs Primavera correctamente.
-        """
+        """Nombre de tono (cenizo/dorado) para cabello según RGB."""
         r, g, b = [int(x) for x in rgb]
         lum = (r + g + b) / 3
         
@@ -544,11 +498,7 @@ class AnalizadorColores:
         return "Negro azabache"
     
     def _categoria_cabello(self, rgb: np.ndarray) -> str:
-        """
-        Categoriza cabello incluyendo temperatura de color.
-        
-        MEJORADO: Incluye información sobre si es cenizo o dorado
-        """
+        """Categoría (claro_cenizo, medio, oscuro, etc.)."""
         r, g, b = [int(x) for x in rgb]
         lum = sum(rgb) / 3
         diferencia_calido = r - b
