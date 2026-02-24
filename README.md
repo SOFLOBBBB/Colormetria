@@ -1,16 +1,16 @@
-# 🎨 ColorMetría - Análisis de Colorimetría Personal
+# ColorMetría - Análisis de colorimetría personal
 
-Sistema inteligente de análisis de colorimetría que analiza tu rostro, tono de piel, color de cabello y ojos para brindarte recomendaciones personalizadas de colores y estilos de ropa.
+Sistema de análisis de colorimetría que analiza rostro, tono de piel, color de cabello y ojos para ofrecer recomendaciones personalizadas de colores y estilos.
 
-## ✨ Características
+## Características
 
-- 📸 **Análisis Facial**: Detecta automáticamente tu rostro y analiza sus características
-- 🎨 **Colorimetría Personal**: Identifica tu estación de color (Primavera, Verano, Otoño, Invierno)
-- 👗 **Recomendaciones de Ropa**: Sugiere tipos de prendas según tu tipo de cuerpo
-- 💇 **Estilos de Cabello**: Recomendaciones personalizadas según tu forma de rostro
-- 🌈 **Paleta de Colores**: Visualiza los colores que mejor te favorecen
+- Análisis facial: detección de rostro y análisis de características
+- Colorimetría: identificación de estación de color (Primavera, Verano, Otoño, Invierno)
+- Recomendaciones de ropa según tipo de cuerpo
+- Estilos de cabello según forma de rostro
+- Paleta de colores que favorecen al usuario
 
-## 🛠️ Tecnologías
+## Tecnologías
 
 ### Backend
 - Python 3.10+
@@ -27,9 +27,9 @@ Sistema inteligente de análisis de colorimetría que analiza tu rostro, tono de
 - Framer Motion
 - React Webcam
 
-## 🚀 Instalación
+## Instalación
 
-### Requisitos Previos
+### Requisitos
 - Python 3.10 o superior
 - Node.js 18 o superior
 - npm o yarn
@@ -39,7 +39,7 @@ Sistema inteligente de análisis de colorimetría que analiza tu rostro, tono de
 ```bash
 cd backend
 python -m venv venv
-source venv/bin/activate  # En Windows: venv\Scripts\activate
+source venv/bin/activate
 pip install -r requirements.txt
 uvicorn main:app --reload
 ```
@@ -52,32 +52,20 @@ npm install
 npm run dev
 ```
 
-## 📖 Uso
+## Uso
 
-1. Abre la aplicación en tu navegador (http://localhost:5173)
+1. Abre la aplicación en http://localhost:5173
 2. Permite el acceso a la cámara o sube una foto
-3. La aplicación analizará tu rostro automáticamente
-4. Recibe tus recomendaciones personalizadas de colores y estilos
+3. La aplicación analiza el rostro automáticamente
+4. Recibe recomendaciones de colores y estilos
 
-## 🎯 Estaciones de Color
+## Estaciones de color
 
-### Primavera (Cálido y Brillante)
-Tonos cálidos con subtono dorado. Colores vivos y frescos.
+- **Primavera**: tonos cálidos con subtono dorado. Colores vivos y frescos.
+- **Verano**: tonos fríos con subtono rosado. Colores suaves y apagados.
+- **Otoño**: tonos cálidos con subtono dorado. Colores terrosos y ricos.
+- **Invierno**: tonos fríos con subtono azulado. Colores intensos y contrastantes.
 
-### Verano (Frío y Suave)
-Tonos fríos con subtono rosado. Colores suaves y apagados.
+## Licencia
 
-### Otoño (Cálido y Profundo)
-Tonos cálidos con subtono dorado. Colores terrosos y ricos.
-
-### Invierno (Frío y Brillante)
-Tonos fríos con subtono azulado. Colores intensos y contrastantes.
-
-## 👨‍💻 Desarrollo
-
-Este proyecto fue creado con amor para ayudar a las personas a descubrir los colores que mejor les favorecen según su colorimetría personal.
-
-## 📄 Licencia
-
-MIT License - Siéntete libre de usar y modificar este proyecto.
-
+MIT License.
