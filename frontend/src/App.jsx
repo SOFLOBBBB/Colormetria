@@ -69,8 +69,8 @@ function App() {
       // Añadir género
       formData.append('genero', genero)
       
-      // Enviar al backend
-      const respuestaAPI = await fetch('http://localhost:8000/analizar', {
+      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000'
+      const respuestaAPI = await fetch(`${apiUrl}/analizar`, {
         method: 'POST',
         body: formData
       })
@@ -90,7 +90,6 @@ function App() {
       }
       
     } catch (err) {
-      console.error('Error al procesar imagen:', err)
       setError(err.message || 'Error al procesar la imagen. Por favor, intenta de nuevo.')
       setEstadoActual(ESTADOS.CAPTURA)
     }
@@ -123,7 +122,7 @@ function App() {
       <Header onReiniciar={reiniciarAnalisis} mostrarBotonReiniciar={estadoActual !== ESTADOS.INICIO} />
       
       {/* Contenido principal */}
-      <main className="pt-20 pb-12">
+      <main className="pt-16 sm:pt-20 pb-12 min-h-[calc(100vh-theme(spacing.20))]">
         <AnimatePresence mode="wait">
           {/* Pantalla de inicio */}
           {estadoActual === ESTADOS.INICIO && (
@@ -195,7 +194,7 @@ function App() {
                 >
                   <GeneradorCabello
                     imagen={imagenCapturada}
-                    estacion={resultados.analisis.estacion.id}
+                    estacion={resultados.estacion.id}
                     genero={genero}
                   />
                 </motion.div>
@@ -209,7 +208,7 @@ function App() {
                   transition={{ delay: 0.4 }}
                 >
                   <GaleriaOutfits
-                    estacion={resultados.analisis.estacion.id}
+                    estacion={resultados.estacion.id}
                     genero={genero}
                   />
                 </motion.div>
@@ -219,9 +218,9 @@ function App() {
               <div className="section-container mt-12 text-center">
                 <button
                   onClick={reiniciarAnalisis}
-                  className="btn-primary text-lg"
+                  className="btn-primary text-lg min-h-[var(--min-touch,44px)]"
                 >
-                  ✨ Hacer Nuevo Análisis
+                  Hacer nuevo análisis
                 </button>
               </div>
             </motion.div>
@@ -230,9 +229,8 @@ function App() {
       </main>
       
       {/* Footer */}
-      <footer className="py-8 text-center text-white/50 text-sm">
-        <p>ColorMetría © 2024 - Descubre tu paleta personal</p>
-        <p className="mt-1">Desarrollado con 💜 para resaltar tu belleza natural</p>
+      <footer className="py-6 sm:py-8 text-center text-white/50 text-sm px-4">
+        <p>ColorMetría - Descubre tu paleta personal</p>
       </footer>
     </div>
   )

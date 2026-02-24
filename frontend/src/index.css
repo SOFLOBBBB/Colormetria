@@ -1,26 +1,19 @@
-/* 
- * Estilos globales para ColorMetría
- * Aplicación de análisis de colorimetría personal
- */
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* Variables CSS personalizadas */
 :root {
   --color-primavera: #FF7F50;
   --color-verano: #9C27B0;
   --color-otono: #E65100;
   --color-invierno: #1565C0;
-  
   --gradient-primavera: linear-gradient(135deg, #FFD700 0%, #FF7F50 50%, #FFCBA4 100%);
   --gradient-verano: linear-gradient(135deg, #E6E6FA 0%, #9C27B0 50%, #FFB6C1 100%);
   --gradient-otono: linear-gradient(135deg, #FFDB58 0%, #E65100 50%, #7B3F00 100%);
   --gradient-invierno: linear-gradient(135deg, #FFFFFF 0%, #1565C0 50%, #000000 100%);
+  --min-touch: 44px;
 }
 
-/* Estilos base */
 * {
   margin: 0;
   padding: 0;
@@ -35,8 +28,10 @@ body {
   font-family: 'DM Sans', sans-serif;
   background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
   min-height: 100vh;
+  min-height: 100dvh;
   color: #fff;
   overflow-x: hidden;
+  padding-bottom: env(safe-area-inset-bottom, 0);
 }
 
 /* Tipografía */
@@ -84,9 +79,22 @@ h1, h2, h3, h4, h5, h6 {
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
   }
   
-  /* Contenedor de sección */
   .section-container {
-    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+    @apply max-w-7xl mx-auto;
+    padding-left: max(1rem, env(safe-area-inset-left));
+    padding-right: max(1rem, env(safe-area-inset-right));
+  }
+  @media (min-width: 640px) {
+    .section-container {
+      padding-left: max(1.5rem, env(safe-area-inset-left));
+      padding-right: max(1.5rem, env(safe-area-inset-right));
+    }
+  }
+  @media (min-width: 1024px) {
+    .section-container {
+      padding-left: max(2rem, env(safe-area-inset-left));
+      padding-right: max(2rem, env(safe-area-inset-right));
+    }
   }
   
   /* Título de sección */

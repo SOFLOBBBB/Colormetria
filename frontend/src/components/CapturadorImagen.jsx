@@ -7,21 +7,22 @@ import { useState, useRef, useCallback } from 'react'
 import { motion } from 'framer-motion'
 import Webcam from 'react-webcam'
 import { useDropzone } from 'react-dropzone'
-import { Camera, Upload, RefreshCw, Check, ArrowLeft, AlertCircle } from 'lucide-react'
+import { Camera, Upload, RefreshCw, Check, ArrowLeft, AlertCircle, Lightbulb } from 'lucide-react'
 
 function CapturadorImagen({ onCaptura, onVolver, error }) {
   const [modo, setModo] = useState('seleccion') // 'seleccion', 'camara', 'archivo'
   const [imagenPrevia, setImagenPrevia] = useState(null)
   const [camaraActiva, setCamaraActiva] = useState(false)
   const webcamRef = useRef(null)
-  
+
   // Configuración de la webcam
+  const anchoVideo = typeof window !== 'undefined' && window.innerWidth < 640 ? 480 : 720
   const videoConstraints = {
-    width: 720,
-    height: 720,
-    facingMode: "user"
+    width: anchoVideo,
+    height: anchoVideo,
+    facingMode: 'user'
   }
-  
+
   /**
    * Captura imagen de la webcam
    */
@@ -31,7 +32,7 @@ function CapturadorImagen({ onCaptura, onVolver, error }) {
       setImagenPrevia(imageSrc)
     }
   }, [webcamRef])
-  
+
   /**
    * Maneja el drop de archivos
    */
@@ -39,15 +40,15 @@ function CapturadorImagen({ onCaptura, onVolver, error }) {
     if (archivosAceptados.length > 0) {
       const archivo = archivosAceptados[0]
       const reader = new FileReader()
-      
+
       reader.onload = () => {
         setImagenPrevia(reader.result)
       }
-      
+
       reader.readAsDataURL(archivo)
     }
   }, [])
-  
+
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
     accept: {
@@ -56,7 +57,7 @@ function CapturadorImagen({ onCaptura, onVolver, error }) {
     maxFiles: 1,
     multiple: false
   })
-  
+
   /**
    * Confirma la imagen y la envía para procesar
    */
@@ -65,14 +66,14 @@ function CapturadorImagen({ onCaptura, onVolver, error }) {
       onCaptura(imagenPrevia)
     }
   }
-  
+
   /**
    * Reinicia para tomar otra foto
    */
   const reiniciarCaptura = () => {
     setImagenPrevia(null)
   }
-  
+
   /**
    * Vuelve a la selección de modo
    */
@@ -81,7 +82,7 @@ function CapturadorImagen({ onCaptura, onVolver, error }) {
     setImagenPrevia(null)
     setCamaraActiva(false)
   }
-  
+
   return (
     <div className="section-container py-8">
       <motion.div
@@ -96,10 +97,10 @@ function CapturadorImagen({ onCaptura, onVolver, error }) {
             Toma una foto clara de tu rostro para el análisis de colorimetría
           </p>
         </div>
-        
+
         {/* Mensaje de error */}
         {error && (
-          <motion.div 
+          <motion.div
             className="mb-6 p-4 rounded-xl bg-red-500/20 border border-red-500/50 flex items-start gap-3"
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -111,7 +112,7 @@ function CapturadorImagen({ onCaptura, onVolver, error }) {
             </div>
           </motion.div>
         )}
-        
+
         {/* Contenedor principal */}
         <div className="glass-card">
           {/* Selección de modo */}
@@ -123,11 +124,12 @@ function CapturadorImagen({ onCaptura, onVolver, error }) {
             >
               {/* Opción cámara */}
               <motion.button
+                type="button"
                 onClick={() => {
                   setModo('camara')
                   setCamaraActiva(true)
                 }}
-                className="p-8 rounded-xl border-2 border-white/20 bg-white/5 hover:bg-white/10 hover:border-purple-400 transition-all text-center group"
+                className="min-h-[var(--min-touch,44px)] p-6 sm:p-8 rounded-xl border-2 border-white/20 bg-white/5 hover:bg-white/10 hover:border-purple-400 transition-all text-center group"
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
               >
@@ -139,11 +141,12 @@ function CapturadorImagen({ onCaptura, onVolver, error }) {
                   Toma una foto con tu webcam
                 </p>
               </motion.button>
-              
+
               {/* Opción subir archivo */}
               <motion.button
+                type="button"
                 onClick={() => setModo('archivo')}
-                className="p-8 rounded-xl border-2 border-white/20 bg-white/5 hover:bg-white/10 hover:border-blue-400 transition-all text-center group"
+                className="min-h-[var(--min-touch,44px)] p-6 sm:p-8 rounded-xl border-2 border-white/20 bg-white/5 hover:bg-white/10 hover:border-blue-400 transition-all text-center group"
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
               >
@@ -157,7 +160,7 @@ function CapturadorImagen({ onCaptura, onVolver, error }) {
               </motion.button>
             </motion.div>
           )}
-          
+
           {/* Modo cámara */}
           {modo === 'camara' && (
             <motion.div
@@ -165,12 +168,13 @@ function CapturadorImagen({ onCaptura, onVolver, error }) {
               animate={{ opacity: 1 }}
             >
               {/* Vista previa de imagen capturada o webcam */}
-              <div className="relative aspect-square max-w-md mx-auto rounded-2xl overflow-hidden bg-black/50 mb-6">
+              <div className="relative aspect-square w-full max-w-sm sm:max-w-md mx-auto rounded-2xl overflow-hidden bg-black/50 mb-4 sm:mb-6">
                 {imagenPrevia ? (
-                  <img 
-                    src={imagenPrevia} 
-                    alt="Captura" 
+                  <img
+                    src={imagenPrevia}
+                    alt="Captura"
                     className="w-full h-full object-cover"
+                    style={{ transform: 'scaleX(-1)' }}
                   />
                 ) : (
                   <>
@@ -180,6 +184,7 @@ function CapturadorImagen({ onCaptura, onVolver, error }) {
                       screenshotFormat="image/jpeg"
                       videoConstraints={videoConstraints}
                       className="w-full h-full object-cover"
+                      style={{ transform: 'scaleX(-1)' }}
                     />
                     {/* Guía de encuadre */}
                     <div className="absolute inset-0 pointer-events-none">
@@ -191,21 +196,23 @@ function CapturadorImagen({ onCaptura, onVolver, error }) {
                   </>
                 )}
               </div>
-              
+
               {/* Controles */}
-              <div className="flex justify-center gap-4">
+              <div className="flex flex-wrap justify-center gap-3 sm:gap-4">
                 {!imagenPrevia ? (
                   <>
                     <button
+                      type="button"
                       onClick={volverASeleccion}
-                      className="px-6 py-3 rounded-xl bg-white/10 hover:bg-white/20 transition-colors flex items-center gap-2"
+                      className="min-h-[var(--min-touch,44px)] px-4 sm:px-6 py-3 rounded-xl bg-white/10 hover:bg-white/20 transition-colors flex items-center justify-center gap-2"
                     >
                       <ArrowLeft className="w-5 h-5" />
                       Volver
                     </button>
                     <motion.button
+                      type="button"
                       onClick={capturarFoto}
-                      className="btn-primary flex items-center gap-2 text-lg"
+                      className="btn-primary flex items-center gap-2 text-base sm:text-lg min-h-[var(--min-touch,44px)]"
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
                     >
@@ -216,15 +223,17 @@ function CapturadorImagen({ onCaptura, onVolver, error }) {
                 ) : (
                   <>
                     <button
+                      type="button"
                       onClick={reiniciarCaptura}
-                      className="px-6 py-3 rounded-xl bg-white/10 hover:bg-white/20 transition-colors flex items-center gap-2"
+                      className="min-h-[var(--min-touch,44px)] px-4 sm:px-6 py-3 rounded-xl bg-white/10 hover:bg-white/20 transition-colors flex items-center justify-center gap-2"
                     >
-                      <RefreshCw className="w-5 h-5" />
-                      Otra Foto
+                      <RefreshCw className="w-5 h-5" aria-hidden />
+                      Otra foto
                     </button>
                     <motion.button
+                      type="button"
                       onClick={confirmarImagen}
-                      className="btn-primary flex items-center gap-2 text-lg"
+                      className="btn-primary flex items-center gap-2 text-base sm:text-lg min-h-[var(--min-touch,44px)]"
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
                     >
@@ -236,7 +245,7 @@ function CapturadorImagen({ onCaptura, onVolver, error }) {
               </div>
             </motion.div>
           )}
-          
+
           {/* Modo subir archivo */}
           {modo === 'archivo' && (
             <motion.div
@@ -246,13 +255,16 @@ function CapturadorImagen({ onCaptura, onVolver, error }) {
               {!imagenPrevia ? (
                 <div
                   {...getRootProps()}
-                  className={`border-2 border-dashed rounded-2xl p-12 text-center cursor-pointer transition-all ${
-                    isDragActive 
-                      ? 'border-purple-400 bg-purple-500/10' 
+                  className={`border-2 border-dashed rounded-2xl p-6 sm:p-12 text-center cursor-pointer transition-all min-h-[160px] flex flex-col items-center justify-center ${isDragActive
+                      ? 'border-purple-400 bg-purple-500/10'
                       : 'border-white/30 hover:border-white/50'
-                  }`}
+                    }`}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') e.currentTarget.click() }}
+                  aria-label="Arrastra una imagen o haz clic para seleccionar"
                 >
-                  <input {...getInputProps()} />
+                  <input {...getInputProps()} aria-describedby="consejos-captura" />
                   <Upload className="w-16 h-16 text-white/50 mx-auto mb-4" />
                   {isDragActive ? (
                     <p className="text-lg">Suelta la imagen aquí...</p>
@@ -269,14 +281,14 @@ function CapturadorImagen({ onCaptura, onVolver, error }) {
                 </div>
               ) : (
                 <div className="relative aspect-square max-w-md mx-auto rounded-2xl overflow-hidden bg-black/50 mb-6">
-                  <img 
-                    src={imagenPrevia} 
-                    alt="Imagen subida" 
+                  <img
+                    src={imagenPrevia}
+                    alt="Imagen subida"
                     className="w-full h-full object-cover"
                   />
                 </div>
               )}
-              
+
               {/* Controles */}
               <div className="flex justify-center gap-4 mt-6">
                 {!imagenPrevia ? (
@@ -311,16 +323,17 @@ function CapturadorImagen({ onCaptura, onVolver, error }) {
             </motion.div>
           )}
         </div>
-        
+
         {/* Consejos */}
-        <motion.div 
-          className="mt-8 p-4 rounded-xl bg-white/5 border border-white/10"
+        <motion.div
+          className="mt-6 sm:mt-8 p-4 rounded-xl bg-white/5 border border-white/10"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.3 }}
         >
-          <h4 className="font-semibold mb-2 flex items-center gap-2">
-            💡 Consejos para mejores resultados
+          <h4 className="font-semibold mb-2 flex items-center gap-2 text-sm sm:text-base" id="consejos-captura">
+            <Lightbulb className="w-4 h-4 flex-shrink-0" aria-hidden />
+            Consejos para mejores resultados
           </h4>
           <ul className="text-sm text-white/70 space-y-1">
             <li>• Usa buena iluminación natural (evita luz artificial muy amarilla)</li>
@@ -329,7 +342,7 @@ function CapturadorImagen({ onCaptura, onVolver, error }) {
             <li>• Asegúrate de que se vea tu cabello natural</li>
           </ul>
         </motion.div>
-        
+
         {/* Botón volver al inicio */}
         <div className="text-center mt-6">
           <button

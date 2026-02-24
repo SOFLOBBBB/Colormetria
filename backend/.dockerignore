@@ -1,0 +1,12 @@
+venv/
+__pycache__/
+*.pyc
+*.db
+*.log
+.git/
+.gitignore
+.env
+*.md
+ml/datasets/
+evaluacion/
+docs/
