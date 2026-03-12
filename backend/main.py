@@ -12,6 +12,7 @@ import numpy as np
 from PIL import Image
 import io
 import json
+import threading
 import time
 from datetime import datetime
 
@@ -71,6 +72,21 @@ def _obtener_analizadores() -> Dict[str, Any]:
         _analizadores_error_timestamp = time.time()
         print(f"[ColorMetria] Error cargando analizadores: {e}", flush=True)
         raise RuntimeError(_analizadores_error)
+
+
+def _prewarm_analizadores():
+    """Carga analizadores en background tras el arranque del servidor."""
+    try:
+        _obtener_analizadores()
+        print("[ColorMetria] Pre-warm de analizadores completado", flush=True)
+    except Exception as e:
+        print(f"[ColorMetria] Pre-warm fallo (se cargaran bajo demanda): {e}", flush=True)
+
+
+@app.on_event("startup")
+def startup_prewarm():
+    thread = threading.Thread(target=_prewarm_analizadores, daemon=True)
+    thread.start()
 
 INFO_ESTACION = {
     "primavera": {
