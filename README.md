@@ -66,6 +66,10 @@ npm run dev
 - **Otoño**: tonos cálidos con subtono dorado. Colores terrosos y ricos.
 - **Invierno**: tonos fríos con subtono azulado. Colores intensos y contrastantes.
 
+## Despliegue del backend (Render)
+
+Para desplegar en Render: conecta el repo, crea un Web Service con root `backend`, build `pip install -r requirements.txt`, start `uvicorn main:app --host 0.0.0.0 --port $PORT`. Los analizadores se cargan en la primera peticion a `/analizar` para que el servicio abra el puerto a tiempo. Detalle en `backend/DESPLIEGUE.md`.
+
 ## Licencia
 
 MIT License.

@@ -4,7 +4,7 @@ from fastapi import FastAPI, UploadFile, File, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
-from typing import Optional
+from typing import Optional, Dict, Any
 import numpy as np
 from PIL import Image
 import io
@@ -14,13 +14,6 @@ import time
 from datetime import datetime
 
 from database import obtener_db, crear_tablas, CRUDAnalisis, CRUDRecomendacion
-from analizadores import (
-    AnalizadorRobusto,
-    ClasificadorRobusto,
-    DetectorRostro,
-    AnalizadorColores,
-)
-from analizadores.atributos_faciales import analizar_atributos as analizar_atributos_faciales
 
 app = FastAPI(title="ColorMetría API", version="2.0.0")
 app.add_middleware(
@@ -31,11 +24,43 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-detector_rostro = DetectorRostro()
-analizador_robusto = AnalizadorRobusto(usar_normalizacion=True)
-clasificador_robusto = ClasificadorRobusto(usar_ml=False)
-analizador_colores_legacy = AnalizadorColores()
 crear_tablas()
+
+_analizadores_cache: Optional[Dict[str, Any]] = None
+_analizadores_error: Optional[str] = None
+
+
+def _obtener_analizadores() -> Dict[str, Any]:
+    """Carga bajo demanda los analizadores (MediaPipe, sklearn, etc.) y los cachea."""
+    global _analizadores_cache, _analizadores_error
+    if _analizadores_error is not None:
+        raise RuntimeError(_analizadores_error)
+    if _analizadores_cache is not None:
+        return _analizadores_cache
+    try:
+        from analizadores import (
+            AnalizadorRobusto,
+            ClasificadorRobusto,
+            DetectorRostro,
+            AnalizadorColores,
+        )
+        from analizadores.atributos_faciales import analizar_atributos as analizar_atributos_faciales
+
+        detector_rostro = DetectorRostro()
+        analizador_robusto = AnalizadorRobusto(usar_normalizacion=True)
+        clasificador_robusto = ClasificadorRobusto(usar_ml=False)
+        analizador_colores_legacy = AnalizadorColores()
+        _analizadores_cache = {
+            "detector_rostro": detector_rostro,
+            "analizador_robusto": analizador_robusto,
+            "clasificador_robusto": clasificador_robusto,
+            "analizador_colores_legacy": analizador_colores_legacy,
+            "analizar_atributos_faciales": analizar_atributos_faciales,
+        }
+        return _analizadores_cache
+    except Exception as e:
+        _analizadores_error = str(e)
+        raise RuntimeError(_analizadores_error)
 
 INFO_ESTACION = {
     "primavera": {
@@ -115,24 +140,34 @@ async def analizar(
 ):
     """Analiza imagen y devuelve estación colorimétrica, colores y features."""
     try:
+        analizadores = _obtener_analizadores()
+    except RuntimeError as e:
+        raise HTTPException(
+            status_code=503,
+            detail=f"Servicio de análisis no disponible: {e}. Reintente más tarde.",
+        )
+    try:
         contenido = await archivo.read()
         imagen_pil = Image.open(io.BytesIO(contenido))
         if imagen_pil.mode != "RGB":
             imagen_pil = imagen_pil.convert("RGB")
         imagen_np = np.array(imagen_pil)
 
+        detector_rostro = analizadores["detector_rostro"]
         deteccion = detector_rostro.detectar(imagen_np)
         if deteccion is None:
             raise HTTPException(status_code=400, detail="No se detectó rostro en la imagen")
         landmarks = deteccion["landmarks"]
         region_rostro = deteccion["region_rostro"]
 
-        atributos = analizar_atributos_faciales(imagen_np)
+        atributos = analizadores["analizar_atributos_faciales"](imagen_np)
 
         t0 = time.time()
+        analizador_robusto = analizadores["analizador_robusto"]
         resultado = analizador_robusto.analizar(imagen_np, landmarks=landmarks)
         metodo = "robusto"
 
+        analizador_colores_legacy = analizadores["analizador_colores_legacy"]
         if "error" in resultado:
             resultado = analizador_colores_legacy.analizar(
                 imagen_np, landmarks, region_rostro
@@ -158,6 +193,7 @@ async def analizar(
         t_analisis = time.time() - t0
 
         t1 = time.time()
+        clasificador_robusto = analizadores["clasificador_robusto"]
         clasificacion = clasificador_robusto.clasificar(features)
         t_clasif = time.time() - t1
 
