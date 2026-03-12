@@ -1,5 +1,8 @@
 """API de análisis de colorimetría: detección de rostro, análisis LAB y clasificación en estación."""
 
+import os
+os.environ.setdefault("MPLBACKEND", "Agg")
+
 from fastapi import FastAPI, UploadFile, File, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -8,7 +11,6 @@ from typing import Optional, Dict, Any
 import numpy as np
 from PIL import Image
 import io
-import os
 import json
 import time
 from datetime import datetime
@@ -67,6 +69,7 @@ def _obtener_analizadores() -> Dict[str, Any]:
     except Exception as e:
         _analizadores_error = str(e)
         _analizadores_error_timestamp = time.time()
+        print(f"[ColorMetria] Error cargando analizadores: {e}", flush=True)
         raise RuntimeError(_analizadores_error)
 
 INFO_ESTACION = {
