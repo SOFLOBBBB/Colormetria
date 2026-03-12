@@ -123,6 +123,11 @@ function Cargando() {
         
         <p className="text-white/40 text-sm mt-8">
           Esto puede tomar unos segundos...
+          {import.meta.env.VITE_API_URL && (
+            <span className="block mt-2 text-white/30 text-xs">
+              La primera peticion puede tardar hasta 2 minutos si el servidor esta iniciando.
+            </span>
+          )}
         </p>
       </motion.div>
     </div>

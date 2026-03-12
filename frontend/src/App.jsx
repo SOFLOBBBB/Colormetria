@@ -15,6 +15,7 @@ import PanelRecomendaciones from './components/PanelRecomendaciones'
 import GeneradorCabello from './components/GeneradorCabello'
 import GaleriaOutfits from './components/GaleriaOutfits'
 import Cargando from './components/Cargando'
+import { urlApi, TIMEOUT_ANALIZAR_MS } from './config/api.js'
 
 // Estados de la aplicación
 const ESTADOS = {
@@ -68,18 +69,28 @@ function App() {
       
       // Añadir género
       formData.append('genero', genero)
-      
-      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000'
-      const respuestaAPI = await fetch(`${apiUrl}/analizar`, {
+
+      const controlador = new AbortController()
+      const idTimeout = setTimeout(() => controlador.abort(), TIMEOUT_ANALIZAR_MS)
+
+      const respuestaAPI = await fetch(`${urlApi}/analizar`, {
         method: 'POST',
-        body: formData
+        body: formData,
+        signal: controlador.signal
       })
-      
+      clearTimeout(idTimeout)
+
       if (!respuestaAPI.ok) {
-        const errorData = await respuestaAPI.json()
-        throw new Error(errorData.detail || 'Error al analizar la imagen')
+        let mensajeError = 'Error al analizar la imagen'
+        try {
+          const errorData = await respuestaAPI.json()
+          mensajeError = errorData.detail || mensajeError
+        } catch {
+          mensajeError = `Error ${respuestaAPI.status}: ${respuestaAPI.statusText}`
+        }
+        throw new Error(mensajeError)
       }
-      
+
       const datos = await respuestaAPI.json()
       
       if (datos.exito) {
@@ -90,7 +101,13 @@ function App() {
       }
       
     } catch (err) {
-      setError(err.message || 'Error al procesar la imagen. Por favor, intenta de nuevo.')
+      let mensaje = err.message || 'Error al procesar la imagen. Por favor, intenta de nuevo.'
+      if (err.name === 'AbortError') {
+        mensaje = 'El servidor tarda mas de lo esperado. En la primera peticion, Render puede tardar hasta 2 minutos en activarse. Intente de nuevo.'
+      } else if (err.message?.includes('Failed to fetch') || err.message?.includes('NetworkError')) {
+        mensaje = 'No se pudo conectar con el servidor. Verifique su conexion o intente mas tarde.'
+      }
+      setError(mensaje)
       setEstadoActual(ESTADOS.CAPTURA)
     }
   }

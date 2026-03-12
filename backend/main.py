@@ -28,15 +28,21 @@ crear_tablas()
 
 _analizadores_cache: Optional[Dict[str, Any]] = None
 _analizadores_error: Optional[str] = None
+_analizadores_error_timestamp: Optional[float] = None
+
+COOLDOWN_REINTENTO_SEGUNDOS = 60
 
 
 def _obtener_analizadores() -> Dict[str, Any]:
     """Carga bajo demanda los analizadores (MediaPipe, sklearn, etc.) y los cachea."""
-    global _analizadores_cache, _analizadores_error
-    if _analizadores_error is not None:
-        raise RuntimeError(_analizadores_error)
+    global _analizadores_cache, _analizadores_error, _analizadores_error_timestamp
     if _analizadores_cache is not None:
         return _analizadores_cache
+    if _analizadores_error is not None and _analizadores_error_timestamp is not None:
+        if time.time() - _analizadores_error_timestamp < COOLDOWN_REINTENTO_SEGUNDOS:
+            raise RuntimeError(_analizadores_error)
+        _analizadores_error = None
+        _analizadores_error_timestamp = None
     try:
         from analizadores import (
             AnalizadorRobusto,
@@ -60,6 +66,7 @@ def _obtener_analizadores() -> Dict[str, Any]:
         return _analizadores_cache
     except Exception as e:
         _analizadores_error = str(e)
+        _analizadores_error_timestamp = time.time()
         raise RuntimeError(_analizadores_error)
 
 INFO_ESTACION = {

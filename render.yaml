@@ -1,0 +1,11 @@
+# Blueprint para desplegar el backend ColorMetría en Render.
+# Ver: https://render.com/docs/blueprint-spec
+
+services:
+  - type: web
+    runtime: python
+    name: colormetria-api
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
