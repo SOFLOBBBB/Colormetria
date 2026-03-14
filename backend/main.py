@@ -179,6 +179,18 @@ async def analizar(
             imagen_pil = imagen_pil.convert("RGB")
         imagen_np = np.array(imagen_pil)
 
+        alto, ancho = imagen_np.shape[:2]
+        max_lado = 1024
+        if max(alto, ancho) > max_lado:
+            if ancho > alto:
+                nuevo_ancho = max_lado
+                nuevo_alto = int(alto * max_lado / ancho)
+            else:
+                nuevo_alto = max_lado
+                nuevo_ancho = int(ancho * max_lado / alto)
+            imagen_pil = imagen_pil.resize((nuevo_ancho, nuevo_alto), Image.Resampling.LANCZOS)
+            imagen_np = np.array(imagen_pil)
+
         detector_rostro = analizadores["detector_rostro"]
         deteccion = detector_rostro.detectar(imagen_np)
         if deteccion is None:
