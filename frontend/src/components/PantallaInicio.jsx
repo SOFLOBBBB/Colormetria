@@ -51,40 +51,39 @@ function PantallaInicio({ onIniciar }) {
   }
   
   return (
-    <div className="section-container py-12">
-      {/* Hero Section */}
-      <motion.div 
-        className="text-center mb-16"
-        initial={{ opacity: 0, y: 30 }}
+    <div className="section-container py-10 sm:py-14 lg:py-16">
+      <motion.div
+        className="text-center mb-14 sm:mb-20 max-w-4xl mx-auto"
+        initial={{ opacity: 0, y: 24 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
+        transition={{ duration: 0.55 }}
       >
-        {/* Badge */}
         <motion.div
-          className="inline-flex items-center gap-2 px-3 py-2 sm:px-4 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 mb-4 sm:mb-6"
-          initial={{ scale: 0.9 }}
-          animate={{ scale: 1 }}
-          transition={{ delay: 0.2 }}
+          className="inline-flex items-center gap-2 px-3 py-2 sm:px-5 rounded-full border border-white/15 bg-mesh-subtle backdrop-blur-md mb-5 sm:mb-7"
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.12 }}
           role="status"
           aria-label="Análisis de colorimetría"
         >
-          <Sparkles className="w-4 h-4 text-yellow-400 flex-shrink-0" aria-hidden />
-          <span className="text-xs sm:text-sm">Análisis de colorimetría</span>
+          <Sparkles className="w-4 h-4 text-amber-200/90 flex-shrink-0" aria-hidden />
+          <span className="text-xs sm:text-sm font-medium text-white/85 tracking-wide">
+            Análisis de colorimetría personal
+          </span>
         </motion.div>
-        
-        {/* Título principal */}
-        <h1 className="font-display text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-4 sm:mb-6 px-2">
-          <span className="bg-gradient-to-r from-white via-purple-200 to-pink-200 bg-clip-text text-transparent">
+
+        <h1 className="font-display text-3xl sm:text-4xl md:text-5xl lg:text-[3.35rem] font-semibold mb-5 sm:mb-7 px-2 leading-tight">
+          <span className="bg-gradient-to-br from-[#faf9f7] via-[#ebe3d6] to-[#cfc0d8] bg-clip-text text-transparent">
             Descubre los colores
           </span>
           <br />
-          <span className="bg-gradient-to-r from-pink-300 via-purple-400 to-indigo-400 bg-clip-text text-transparent">
+          <span className="bg-gradient-to-br from-[#e8dcc8] to-[#b8a8c8] bg-clip-text text-transparent">
             que te favorecen
           </span>
         </h1>
-        <p className="text-base sm:text-lg md:text-xl text-white/70 max-w-2xl mx-auto mb-6 sm:mb-8 px-2">
-          Analiza tu rostro, descubre tu estación de color y recibe recomendaciones 
-          personalizadas de colores, ropa y estilos que resaltarán tu belleza natural.
+        <p className="font-body text-base sm:text-lg text-white/65 max-w-xl mx-auto mb-8 sm:mb-10 px-3 leading-relaxed">
+          Analiza tu rostro, identifica tu estación cromática y obtén recomendaciones de
+          color, ropa y estilo alineadas con tu colorimetría.
         </p>
         
         {/* Paleta animada decorativa */}
@@ -112,13 +111,13 @@ function PantallaInicio({ onIniciar }) {
       </motion.div>
       
       {/* Selección de género */}
-      <motion.div 
-        className="glass-card max-w-lg mx-auto mb-16"
+      <motion.div
+        className="glass-card glass-card--elevated max-w-lg mx-auto mb-14 sm:mb-20"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.3 }}
+        transition={{ delay: 0.22 }}
       >
-        <h3 className="text-xl font-display font-semibold text-center mb-6">
+        <h3 className="text-xl sm:text-2xl font-display font-semibold text-center mb-6 text-white/95">
           ¿Cómo te identificas?
         </h3>
         
@@ -168,8 +167,8 @@ function PantallaInicio({ onIniciar }) {
       </motion.div>
       
       {/* Características */}
-      <motion.div 
-        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"
+      <motion.div
+        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5 lg:gap-6"
         variants={containerVariants}
         initial="hidden"
         animate="visible"
@@ -177,12 +176,18 @@ function PantallaInicio({ onIniciar }) {
         {caracteristicas.map((caracteristica, index) => (
           <motion.div
             key={index}
-            className="glass-card text-center"
+            className="glass-card text-center h-full flex flex-col"
             variants={itemVariants}
-            whileHover={{ y: -5, transition: { duration: 0.2 } }}
+            whileHover={{ y: -4, transition: { duration: 0.22 } }}
           >
-            <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center mx-auto mb-4">
-              <caracteristica.icono className="w-7 h-7 text-white" />
+            <div
+              className="w-14 h-14 rounded-app-lg flex items-center justify-center mx-auto mb-4"
+              style={{
+                background: 'linear-gradient(145deg, rgba(196,165,132,0.35) 0%, rgba(157,127,184,0.45) 100%)',
+                border: '1px solid rgba(255,255,255,0.12)',
+              }}
+            >
+              <caracteristica.icono className="w-7 h-7 text-white/95" aria-hidden />
             </div>
             <h3 className="font-display text-lg font-semibold mb-2">
               {caracteristica.titulo}

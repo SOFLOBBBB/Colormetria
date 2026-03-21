@@ -131,15 +131,17 @@ function App() {
   }
   
   return (
-    <div className="min-h-screen relative">
-      {/* Fondo con partículas */}
-      <div className="particles-bg" />
-      
-      {/* Header */}
+    <div className="app-shell">
+      <a href="#contenido-principal" className="salto-contenido">
+        Ir al contenido principal
+      </a>
+      <div className="particles-bg" aria-hidden />
       <Header onReiniciar={reiniciarAnalisis} mostrarBotonReiniciar={estadoActual !== ESTADOS.INICIO} />
-      
-      {/* Contenido principal */}
-      <main className="pt-16 sm:pt-20 pb-12 min-h-[calc(100vh-theme(spacing.20))]">
+      <main
+        id="contenido-principal"
+        className="pt-16 sm:pt-20 pb-12 min-h-[calc(100vh-theme(spacing.20))] font-body"
+        tabIndex={-1}
+      >
         <AnimatePresence mode="wait">
           {/* Pantalla de inicio */}
           {estadoActual === ESTADOS.INICIO && (
@@ -234,8 +236,9 @@ function App() {
               {/* Botón para nuevo análisis */}
               <div className="section-container mt-12 text-center">
                 <button
+                  type="button"
                   onClick={reiniciarAnalisis}
-                  className="btn-primary text-lg min-h-[var(--min-touch,44px)]"
+                  className="btn-primary text-base sm:text-lg min-h-[var(--min-touch,44px)] px-8"
                 >
                   Hacer nuevo análisis
                 </button>
@@ -246,8 +249,10 @@ function App() {
       </main>
       
       {/* Footer */}
-      <footer className="py-6 sm:py-8 text-center text-white/50 text-sm px-4">
-        <p>ColorMetría - Descubre tu paleta personal</p>
+      <footer className="border-t border-white/10 py-8 sm:py-10 text-center text-white/45 text-sm px-4 font-body">
+        <p className="max-w-md mx-auto leading-relaxed">
+          ColorMetría | Descubre tu paleta personal
+        </p>
       </footer>
     </div>
   )

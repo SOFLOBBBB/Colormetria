@@ -26,6 +26,7 @@ Sistema de análisis de colorimetría que analiza rostro, tono de piel, color de
 - TailwindCSS
 - Framer Motion
 - React Webcam
+- Sistema visual alineado con principios tipo [ui-ux-pro-max-skill](https://github.com/nextlevelbuilder/ui-ux-pro-max-skill) (soft UI, accesibilidad, tipografía Playfair + Montserrat). Tokens en `src/index.css` y `src/tokens/diseno.js`.
 
 ## Instalación
 

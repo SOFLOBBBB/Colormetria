@@ -49,8 +49,13 @@ function Cargando() {
             animate={{ scale: [1, 1.1, 1] }}
             transition={{ duration: 1.5, repeat: Infinity }}
           >
-            <div className="w-20 h-20 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
-              <Sparkles className="w-10 h-10 text-white" />
+            <div
+              className="w-20 h-20 rounded-full flex items-center justify-center border border-white/15"
+              style={{
+                background: 'linear-gradient(145deg, rgba(196,165,132,0.55) 0%, rgba(157,127,184,0.65) 100%)',
+              }}
+            >
+              <Sparkles className="w-10 h-10 text-white" aria-hidden />
             </div>
           </motion.div>
         </div>
@@ -60,8 +65,8 @@ function Cargando() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
         >
-          <h2 className="font-display text-2xl font-semibold mb-4">
-            Analizando tu Colorimetría
+          <h2 className="font-display text-2xl sm:text-3xl font-semibold mb-4 text-white/95">
+            Analizando tu colorimetría
           </h2>
           
           {/* Mensajes que cambian */}
@@ -75,9 +80,9 @@ function Cargando() {
               }}
             >
               {mensajes.map((mensaje, index) => (
-                <motion.p 
+                <motion.p
                   key={index}
-                  className="text-white/60 h-8 flex items-center justify-center"
+                  className="text-white/58 font-body text-sm sm:text-base h-8 flex items-center justify-center"
                 >
                   {mensaje}
                 </motion.p>
@@ -89,7 +94,7 @@ function Cargando() {
         {/* Barra de progreso */}
         <div className="mt-8 h-2 bg-white/10 rounded-full overflow-hidden">
           <motion.div
-            className="h-full bg-gradient-to-r from-purple-500 via-pink-500 to-orange-500"
+            className="h-full bg-gradient-to-r from-amber-700/90 via-rose-900/70 to-violet-900/80"
             initial={{ width: '0%' }}
             animate={{ width: '100%' }}
             transition={{ duration: 4, ease: "easeInOut" }}

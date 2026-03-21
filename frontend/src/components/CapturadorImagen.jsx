@@ -91,10 +91,10 @@ function CapturadorImagen({ onCaptura, onVolver, error }) {
         className="max-w-2xl mx-auto"
       >
         {/* Título */}
-        <div className="text-center mb-8">
-          <h2 className="section-title">Captura tu Imagen</h2>
-          <p className="text-white/60">
-            Toma una foto clara de tu rostro para el análisis de colorimetría
+        <div className="text-center mb-8 sm:mb-10 max-w-xl mx-auto px-2">
+          <h2 className="section-title text-left sm:text-center">Captura tu imagen</h2>
+          <p className="font-body text-white/62 text-sm sm:text-base leading-relaxed">
+            Toma una foto clara de tu rostro para el análisis de colorimetría.
           </p>
         </div>
 
@@ -114,7 +114,7 @@ function CapturadorImagen({ onCaptura, onVolver, error }) {
         )}
 
         {/* Contenedor principal */}
-        <div className="glass-card">
+        <div className="glass-card glass-card--elevated">
           {/* Selección de modo */}
           {modo === 'seleccion' && (
             <motion.div
@@ -204,7 +204,7 @@ function CapturadorImagen({ onCaptura, onVolver, error }) {
                     <button
                       type="button"
                       onClick={volverASeleccion}
-                      className="min-h-[var(--min-touch,44px)] px-4 sm:px-6 py-3 rounded-xl bg-white/10 hover:bg-white/20 transition-colors flex items-center justify-center gap-2"
+                      className="btn-ghost min-h-[var(--min-touch,44px)] px-4 sm:px-6 py-3 flex items-center justify-center gap-2"
                     >
                       <ArrowLeft className="w-5 h-5" />
                       Volver
@@ -225,7 +225,7 @@ function CapturadorImagen({ onCaptura, onVolver, error }) {
                     <button
                       type="button"
                       onClick={reiniciarCaptura}
-                      className="min-h-[var(--min-touch,44px)] px-4 sm:px-6 py-3 rounded-xl bg-white/10 hover:bg-white/20 transition-colors flex items-center justify-center gap-2"
+                      className="btn-ghost min-h-[var(--min-touch,44px)] px-4 sm:px-6 py-3 flex items-center justify-center gap-2"
                     >
                       <RefreshCw className="w-5 h-5" aria-hidden />
                       Otra foto
@@ -293,8 +293,9 @@ function CapturadorImagen({ onCaptura, onVolver, error }) {
               <div className="flex justify-center gap-4 mt-6">
                 {!imagenPrevia ? (
                   <button
+                    type="button"
                     onClick={volverASeleccion}
-                    className="px-6 py-3 rounded-xl bg-white/10 hover:bg-white/20 transition-colors flex items-center gap-2"
+                    className="btn-ghost px-6 py-3 flex items-center gap-2 min-h-[var(--min-touch,44px)]"
                   >
                     <ArrowLeft className="w-5 h-5" />
                     Volver
@@ -302,8 +303,9 @@ function CapturadorImagen({ onCaptura, onVolver, error }) {
                 ) : (
                   <>
                     <button
+                      type="button"
                       onClick={reiniciarCaptura}
-                      className="px-6 py-3 rounded-xl bg-white/10 hover:bg-white/20 transition-colors flex items-center gap-2"
+                      className="btn-ghost px-6 py-3 flex items-center gap-2 min-h-[var(--min-touch,44px)]"
                     >
                       <RefreshCw className="w-5 h-5" />
                       Otra Imagen
