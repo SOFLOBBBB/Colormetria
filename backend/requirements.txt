@@ -5,7 +5,8 @@ uvicorn[standard]>=0.24.0
 python-multipart>=0.0.6
 
 # Procesamiento de imágenes
-opencv-python>=4.8.0
+# Headless: sin GUI/GTK; adecuado para API en Linux (Render/Docker)
+opencv-python-headless>=4.8.0
 Pillow>=10.0.0
 numpy>=1.26.0
 

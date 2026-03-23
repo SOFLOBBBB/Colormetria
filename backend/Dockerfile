@@ -26,6 +26,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
       fi; \
     done
 
+# Fallar el build si Mesa no instaló GLES (evita desplegar imágenes rotas)
+RUN test -f /usr/lib/x86_64-linux-gnu/mesa/libGLESv2.so.2 \
+    || (echo "ERROR: falta /usr/lib/x86_64-linux-gnu/mesa/libGLESv2.so.2" && exit 1)
+
 # Refuerzo para dlopen(libGLESv2.so.2); env_grafico.py añade rutas si hace falta (p. ej. aarch64)
 ENV LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu/mesa:/usr/lib/x86_64-linux-gnu
 

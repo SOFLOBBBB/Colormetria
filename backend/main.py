@@ -5,9 +5,9 @@ import os
 os.environ.setdefault("MPLBACKEND", "Agg")
 
 # Antes de cualquier import que cargue TFLite/MediaPipe (libGLESv2.so.2)
-from env_grafico import configurar_ld_library_path_mesa
+from env_grafico import configurar_entorno_mesa_completo
 
-configurar_ld_library_path_mesa()
+configurar_entorno_mesa_completo()
 
 from fastapi import FastAPI, UploadFile, File, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
