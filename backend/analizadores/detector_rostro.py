@@ -2,22 +2,16 @@
 
 import cv2
 import numpy as np
-import mediapipe as mp
 from typing import Dict, Any, List, Tuple, Optional
+
+from .face_mesh_compat import FaceMeshCompat
 
 
 class DetectorRostro:
     """Detección de rostro y landmarks para análisis de colorimetría."""
 
     def __init__(self):
-        self.mp_face_mesh = mp.solutions.face_mesh
-        self.face_mesh = self.mp_face_mesh.FaceMesh(
-            static_image_mode=True,
-            max_num_faces=1,
-            refine_landmarks=True,
-            min_detection_confidence=0.5,
-            min_tracking_confidence=0.5,
-        )
+        self.face_mesh = FaceMeshCompat()
     
     def detectar(self, imagen_rgb: np.ndarray) -> Optional[Dict[str, Any]]:
         """Devuelve landmarks y bbox del rostro, o None si no hay detección."""

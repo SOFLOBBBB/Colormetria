@@ -3,7 +3,8 @@
 import cv2
 import numpy as np
 from typing import Dict, Any, List, Tuple, Optional
-import mediapipe as mp
+
+from .face_mesh_compat import FaceMeshCompat
 from .normalizador_color import NormalizadorColor, detectar_imagen_no_confiable
 
 
@@ -12,13 +13,7 @@ class AnalizadorRobusto:
 
     def __init__(self, usar_normalizacion: bool = True):
         self.normalizador = NormalizadorColor(metodo="shades_of_gray") if usar_normalizacion else None
-        self.mp_face_mesh = mp.solutions.face_mesh
-        self.face_mesh = self.mp_face_mesh.FaceMesh(
-            static_image_mode=True,
-            max_num_faces=1,
-            refine_landmarks=True,
-            min_detection_confidence=0.5,
-        )
+        self.face_mesh = FaceMeshCompat()
     
     def analizar(
         self,

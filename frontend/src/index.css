@@ -31,6 +31,21 @@
   --transition-ui: 280ms cubic-bezier(0.22, 1, 0.36, 1);
   --ease-out-expo: cubic-bezier(0.22, 1, 0.36, 1);
   --min-touch: 44px;
+
+  /* ── Premium 3D / Shimmer tokens ── */
+  --perspective-card: 900px;
+  --tilt-max: 10deg;
+  --shadow-3d-idle:
+    0 8px 24px rgba(0,0,0,0.38),
+    0 2px 4px rgba(0,0,0,0.18),
+    0 1px 0 rgba(255,255,255,0.08) inset;
+  --shadow-3d-hover:
+    0 28px 52px rgba(0,0,0,0.52),
+    0 8px 16px rgba(0,0,0,0.28),
+    0 1px 0 rgba(255,255,255,0.14) inset;
+  --shimmer-angle: 118deg;
+  --shimmer-color: rgba(255,255,255,0.22);
+  --swatch-glow-size: 0 0 20px 4px;
 }
 
 @layer base {
@@ -400,6 +415,130 @@
     background-repeat: repeat;
     background-size: 240px 240px;
   }
+
+  /* ── 3D Depth Card ── */
+  .card-3d {
+    transform-style: preserve-3d;
+    transition:
+      transform 0.4s var(--ease-out-expo),
+      box-shadow 0.4s var(--ease-out-expo);
+    will-change: transform;
+  }
+  .card-3d:hover {
+    box-shadow: var(--shadow-3d-hover);
+  }
+
+  /* ── Shimmer CTA ── */
+  .shimmer-btn {
+    position: relative;
+    overflow: hidden;
+  }
+  .shimmer-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 60%;
+    height: 100%;
+    background: linear-gradient(
+      var(--shimmer-angle),
+      transparent 0%,
+      var(--shimmer-color) 50%,
+      transparent 100%
+    );
+    pointer-events: none;
+  }
+  .shimmer-btn:hover::before {
+    animation: shimmer-sweep 0.65s var(--ease-out-expo) forwards;
+  }
+
+  /* ── Season Badge ── */
+  .season-badge {
+    position: relative;
+    overflow: hidden;
+    border-radius: var(--radius-xl);
+    backdrop-filter: blur(20px) saturate(1.4);
+    -webkit-backdrop-filter: blur(20px) saturate(1.4);
+    border: 1px solid var(--border-subtle);
+    transition:
+      transform 0.35s var(--ease-out-expo),
+      box-shadow 0.35s var(--ease-out-expo),
+      border-color 0.35s var(--ease-out-expo);
+  }
+  .season-badge:hover {
+    transform: translateY(-6px) scale(1.03);
+    border-color: rgba(255,255,255,0.28);
+    box-shadow: 0 20px 48px rgba(0,0,0,0.44);
+  }
+  .season-badge::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    opacity: 0.18;
+    pointer-events: none;
+    transition: opacity 0.35s ease;
+  }
+  .season-badge:hover::before {
+    opacity: 0.28;
+  }
+
+  /* ── Swatch 3D ── */
+  .swatch-3d {
+    position: relative;
+    transform-style: preserve-3d;
+    transition:
+      transform 0.32s var(--ease-out-expo),
+      box-shadow 0.32s var(--ease-out-expo);
+    cursor: pointer;
+  }
+  .swatch-3d::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: linear-gradient(
+      160deg,
+      rgba(255,255,255,0.32) 0%,
+      transparent 55%
+    );
+    pointer-events: none;
+  }
+  .swatch-3d:hover {
+    transform: scale(1.18) translateY(-9px) rotate(-2deg);
+  }
+
+  /* ── Pulse dot ── */
+  .pulse-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #c4a584;
+    animation: pulse-dot 2.4s ease-in-out infinite;
+    flex-shrink: 0;
+  }
+
+  /* ── Gender card selected shimmer border ── */
+  .gender-selected {
+    position: relative;
+    overflow: hidden;
+  }
+  .gender-selected::before {
+    content: '';
+    position: absolute;
+    inset: -2px;
+    border-radius: inherit;
+    background: conic-gradient(
+      from 0deg,
+      #c4a584 0%,
+      #d4a5b8 25%,
+      #8b6f9e 50%,
+      #c4a584 75%,
+      #c4a584 100%
+    );
+    animation: spin-border 4s linear infinite;
+    z-index: -1;
+    opacity: 0.6;
+  }
 }
 
 @keyframes float {
@@ -444,6 +583,37 @@
     opacity: 1;
     transform: translateY(0) scale(1);
   }
+}
+
+@keyframes shimmer-sweep {
+  0%   { left: -100%; }
+  100% { left: 150%; }
+}
+
+@keyframes swatch-pop {
+  0%   { opacity: 0; transform: translateY(16px) scale(0.78); }
+  65%  { transform: translateY(-5px) scale(1.06); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes depth-breathe {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50%       { transform: translateY(-3px) scale(1.012); }
+}
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%       { opacity: 0.55; transform: scale(0.82); }
+}
+
+@keyframes spin-border {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+@keyframes badge-entry {
+  0%   { opacity: 0; transform: translateY(8px) scale(0.94); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
 }
 
 .animate-float {
