@@ -16,7 +16,18 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libsm6 \
     libxext6 \
     libxrender1 \
-    && rm -rf /var/lib/apt/lists/*
+    libglvnd0 \
+    && rm -rf /var/lib/apt/lists/* \
+    && ldconfig \
+    && set -eux; \
+    for d in x86_64-linux-gnu aarch64-linux-gnu; do \
+      if [ -f "/usr/lib/${d}/mesa/libGLESv2.so.2" ] && [ ! -e "/usr/lib/${d}/libGLESv2.so.2" ]; then \
+        ln -sf "mesa/libGLESv2.so.2" "/usr/lib/${d}/libGLESv2.so.2"; \
+      fi; \
+    done
+
+# Refuerzo para dlopen(libGLESv2.so.2); env_grafico.py añade rutas si hace falta (p. ej. aarch64)
+ENV LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu/mesa:/usr/lib/x86_64-linux-gnu
 
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
