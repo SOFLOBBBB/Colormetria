@@ -377,13 +377,18 @@ function ResultadosAnalisis({ resultados, imagen }) {
                 <motion.div
                   key={i}
                   className="group relative flex flex-col items-center gap-1"
-                  initial={{ opacity: 0, scale: 0.7 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: i * 0.06, type: 'spring' }}
-                  whileHover={{ scale: 1.12, y: -4 }}
+                  initial={{ opacity: 0, scale: 0.82, y: 14 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  transition={{
+                    delay: i * 0.05,
+                    type: 'spring',
+                    stiffness: 380,
+                    damping: 28
+                  }}
+                  whileHover={{ scale: 1.1, y: -6 }}
                 >
                   <div
-                    className="w-full aspect-square rounded-xl shadow-lg border-2 border-white/20 cursor-pointer"
+                    className="palette-swatch-pro w-full aspect-square rounded-xl border-2 border-white/25 cursor-pointer"
                     style={{ backgroundColor: color.hex }}
                     title={color.nombre}
                   />
@@ -405,13 +410,18 @@ function ResultadosAnalisis({ resultados, imagen }) {
                 <motion.div
                   key={i}
                   className="group relative flex flex-col items-center gap-1"
-                  initial={{ opacity: 0, scale: 0.7 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: 0.3 + i * 0.06 }}
-                  whileHover={{ scale: 1.1 }}
+                  initial={{ opacity: 0, scale: 0.85, y: 10 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  transition={{
+                    delay: 0.28 + i * 0.055,
+                    type: 'spring',
+                    stiffness: 400,
+                    damping: 30
+                  }}
+                  whileHover={{ scale: 1.08, y: -3 }}
                 >
                   <div
-                    className="w-12 h-12 rounded-xl shadow-lg border-2 border-white/20 cursor-pointer"
+                    className="palette-swatch-pro w-12 h-12 rounded-xl border-2 border-white/25 cursor-pointer"
                     style={{ backgroundColor: color.hex }}
                     title={color.nombre}
                   />
@@ -431,12 +441,12 @@ function ResultadosAnalisis({ resultados, imagen }) {
                 <motion.div
                   key={i}
                   className="relative"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 0.5 + i * 0.06 }}
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: 0.48 + i * 0.055, ease: [0.22, 1, 0.36, 1] }}
                 >
                   <div
-                    className="w-12 h-12 rounded-xl shadow-lg border-2 border-white/20 opacity-60"
+                    className="palette-swatch-pro w-12 h-12 rounded-xl border-2 border-white/20 opacity-60"
                     style={{ backgroundColor: color.hex }}
                     title={color.nombre}
                   />

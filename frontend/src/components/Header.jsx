@@ -7,7 +7,7 @@ import { Sparkles, RotateCcw } from 'lucide-react'
 
 function Header({ onReiniciar, mostrarBotonReiniciar }) {
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 border-b border-white/[0.08] bg-[#14121f]/75 backdrop-blur-xl backdrop-saturate-150 shadow-soft">
+    <header className="fixed top-0 left-0 right-0 z-50 border-b border-white/[0.1] bg-[#14121f]/72 backdrop-blur-2xl backdrop-saturate-150 shadow-[0_8px_32px_rgba(0,0,0,0.35),inset_0_1px_0_rgba(255,255,255,0.06)]">
       <div className="section-container">
         <div className="flex items-center justify-between h-16 sm:h-[4.25rem]">
           <motion.button

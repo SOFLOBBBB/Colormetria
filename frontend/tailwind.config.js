@@ -19,23 +19,29 @@ export default {
         'app-xl': '1.5rem',
       },
       boxShadow: {
-        soft: '0 8px 32px rgba(0, 0, 0, 0.35)',
-        elevated: '0 20px 48px rgba(0, 0, 0, 0.4)',
-        glow: '0 0 40px rgba(139, 111, 158, 0.25)',
+        soft: '0 8px 32px rgba(0, 0, 0, 0.35), 0 1px 0 rgba(255,255,255,0.06) inset',
+        elevated: '0 24px 56px rgba(0, 0, 0, 0.45), 0 12px 24px rgba(0, 0, 0, 0.22)',
+        glow: '0 0 48px rgba(139, 111, 158, 0.28)',
+        'glow-soft': '0 0 60px rgba(196, 165, 132, 0.15)',
       },
       transitionDuration: {
         ui: '220ms',
       },
       animation: {
-        'fade-in': 'fadeIn 0.5s ease-out',
-        'slide-up': 'slideUp 0.5s ease-out',
+        'fade-in': 'fadeIn 0.55s cubic-bezier(0.22,1,0.36,1)',
+        'slide-up': 'slideUp 0.55s cubic-bezier(0.22,1,0.36,1)',
         'pulse-slow': 'pulse 3s infinite',
+        'shimmer-slow': 'shimmerSlow 8s ease-in-out infinite',
       },
       keyframes: {
         fadeIn: { '0%': { opacity: '0' }, '100%': { opacity: '1' } },
         slideUp: {
-          '0%': { opacity: '0', transform: 'translateY(20px)' },
+          '0%': { opacity: '0', transform: 'translateY(22px)' },
           '100%': { opacity: '1', transform: 'translateY(0)' },
+        },
+        shimmerSlow: {
+          '0%, 100%': { opacity: '0.4' },
+          '50%': { opacity: '0.75' },
         },
       },
       backgroundImage: {

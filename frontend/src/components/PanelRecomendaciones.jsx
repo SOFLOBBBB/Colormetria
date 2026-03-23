@@ -230,7 +230,7 @@ function PanelRecomendaciones({ resultados, genero }) {
 
         <div className="max-w-4xl mx-auto space-y-6">
           {SECCIONES.map((sec) => (
-            <motion.div key={sec.id} className="glass-card" layout>
+            <motion.div key={sec.id} className="glass-card glass-card--elevated" layout>
               <button
                 type="button"
                 onClick={() => toggleSeccion(sec.id)}

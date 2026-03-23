@@ -25,6 +25,16 @@ const ESTADOS = {
   RESULTADOS: 'resultados'
 }
 
+const easePremium = [0.22, 1, 0.36, 1]
+const transicionVista = {
+  duration: 0.48,
+  ease: easePremium
+}
+const transicionSalida = {
+  duration: 0.32,
+  ease: easePremium
+}
+
 function App() {
   // Estado de la aplicación
   const [estadoActual, setEstadoActual] = useState(ESTADOS.INICIO)
@@ -136,10 +146,15 @@ function App() {
         Ir al contenido principal
       </a>
       <div className="particles-bg" aria-hidden />
+      <div className="ambient-orbs" aria-hidden>
+        <div className="ambient-orb ambient-orb--1" />
+        <div className="ambient-orb ambient-orb--2" />
+        <div className="ambient-orb ambient-orb--3" />
+      </div>
       <Header onReiniciar={reiniciarAnalisis} mostrarBotonReiniciar={estadoActual !== ESTADOS.INICIO} />
       <main
         id="contenido-principal"
-        className="pt-16 sm:pt-20 pb-12 min-h-[calc(100vh-theme(spacing.20))] font-body"
+        className="relative z-10 pt-16 sm:pt-20 pb-12 min-h-[calc(100vh-theme(spacing.20))] font-body"
         tabIndex={-1}
       >
         <AnimatePresence mode="wait">
@@ -147,10 +162,10 @@ function App() {
           {estadoActual === ESTADOS.INICIO && (
             <motion.div
               key="inicio"
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 24 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              transition={{ duration: 0.4 }}
+              exit={{ opacity: 0, y: -16, transition: transicionSalida }}
+              transition={transicionVista}
             >
               <PantallaInicio onIniciar={iniciarAnalisis} />
             </motion.div>
@@ -160,10 +175,10 @@ function App() {
           {estadoActual === ESTADOS.CAPTURA && (
             <motion.div
               key="captura"
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 24 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              transition={{ duration: 0.4 }}
+              exit={{ opacity: 0, y: -16, transition: transicionSalida }}
+              transition={transicionVista}
             >
               <CapturadorImagen 
                 onCaptura={procesarImagen} 
@@ -177,10 +192,10 @@ function App() {
           {estadoActual === ESTADOS.CARGANDO && (
             <motion.div
               key="cargando"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.3 }}
+              initial={{ opacity: 0, scale: 0.985 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.99, transition: { duration: 0.28, ease: easePremium } }}
+              transition={{ duration: 0.42, ease: easePremium }}
             >
               <Cargando />
             </motion.div>
@@ -190,10 +205,10 @@ function App() {
           {estadoActual === ESTADOS.RESULTADOS && resultados && (
             <motion.div
               key="resultados"
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 28 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              transition={{ duration: 0.4 }}
+              exit={{ opacity: 0, y: -12, transition: transicionSalida }}
+              transition={transicionVista}
             >
               <ResultadosAnalisis 
                 resultados={resultados}
@@ -209,7 +224,7 @@ function App() {
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.3 }}
+                  transition={{ delay: 0.28, duration: 0.5, ease: easePremium }}
                 >
                   <GeneradorCabello
                     imagen={imagenCapturada}
@@ -224,7 +239,7 @@ function App() {
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.4 }}
+                  transition={{ delay: 0.38, duration: 0.5, ease: easePremium }}
                 >
                   <GaleriaOutfits
                     estacion={resultados.estacion.id}
@@ -249,7 +264,7 @@ function App() {
       </main>
       
       {/* Footer */}
-      <footer className="border-t border-white/10 py-8 sm:py-10 text-center text-white/45 text-sm px-4 font-body">
+      <footer className="relative z-10 app-footer-glass py-8 sm:py-10 text-center text-white/50 text-sm px-4 font-body">
         <p className="max-w-md mx-auto leading-relaxed">
           ColorMetría | Descubre tu paleta personal
         </p>

@@ -114,7 +114,7 @@ function CapturadorImagen({ onCaptura, onVolver, error }) {
         )}
 
         {/* Contenedor principal */}
-        <div className="glass-card glass-card--elevated">
+        <div className="glass-card glass-card--elevated transition-shadow duration-300 hover:border-white/[0.18]">
           {/* Selección de modo */}
           {modo === 'seleccion' && (
             <motion.div

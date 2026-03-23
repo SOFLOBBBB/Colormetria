@@ -284,7 +284,7 @@ function GaleriaOutfits({ estacion, genero }) {
     : datos.outfits
 
   return (
-    <div className="glass-card max-w-5xl mx-auto">
+    <div className="glass-card glass-card--elevated max-w-5xl mx-auto transition-shadow duration-300 hover:border-white/[0.16]">
       {/* Header */}
       <div className="flex items-center gap-3 mb-6">
         <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${datos.gradiente} flex items-center justify-center`}>

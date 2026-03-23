@@ -59,10 +59,10 @@ function PantallaInicio({ onIniciar }) {
         transition={{ duration: 0.55 }}
       >
         <motion.div
-          className="inline-flex items-center gap-2 px-3 py-2 sm:px-5 rounded-full border border-white/15 bg-mesh-subtle backdrop-blur-md mb-5 sm:mb-7"
+          className="inline-flex items-center gap-2 px-3 py-2 sm:px-5 rounded-full border border-white/20 bg-white/[0.06] backdrop-blur-xl shadow-[0_8px_32px_rgba(0,0,0,0.2)] mb-5 sm:mb-7 ring-1 ring-white/5"
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.12 }}
+          transition={{ delay: 0.12, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
           role="status"
           aria-label="Análisis de colorimetría"
         >
@@ -96,11 +96,11 @@ function PantallaInicio({ onIniciar }) {
           {['#FF7F50', '#FFB6C1', '#9C27B0', '#E65100', '#1565C0', '#228B22'].map((color, index) => (
             <motion.div
               key={color}
-              className="w-10 h-10 md:w-12 md:h-12 rounded-xl shadow-lg"
+              className="w-10 h-10 md:w-12 md:h-12 rounded-xl shadow-[0_12px_28px_rgba(0,0,0,0.35),inset_0_1px_0_rgba(255,255,255,0.25)] ring-1 ring-white/15"
               style={{ backgroundColor: color }}
-              animate={{ y: [0, -8, 0] }}
+              animate={{ y: [0, -10, 0] }}
               transition={{ 
-                duration: 2, 
+                duration: 2.4, 
                 repeat: Infinity, 
                 delay: index * 0.2,
                 ease: "easeInOut"
@@ -112,10 +112,10 @@ function PantallaInicio({ onIniciar }) {
       
       {/* Selección de género */}
       <motion.div
-        className="glass-card glass-card--elevated max-w-lg mx-auto mb-14 sm:mb-20"
+        className="glass-card glass-card--elevated glass-card--floating max-w-lg mx-auto mb-14 sm:mb-20"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.22 }}
+        transition={{ delay: 0.22, duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
       >
         <h3 className="text-xl sm:text-2xl font-display font-semibold text-center mb-6 text-white/95">
           ¿Cómo te identificas?
@@ -176,9 +176,9 @@ function PantallaInicio({ onIniciar }) {
         {caracteristicas.map((caracteristica, index) => (
           <motion.div
             key={index}
-            className="glass-card text-center h-full flex flex-col"
+            className="glass-card glass-card--floating text-center h-full flex flex-col"
             variants={itemVariants}
-            whileHover={{ y: -4, transition: { duration: 0.22 } }}
+            whileHover={{ y: -6, transition: { duration: 0.28, ease: [0.22, 1, 0.36, 1] } }}
           >
             <div
               className="w-14 h-14 rounded-app-lg flex items-center justify-center mx-auto mb-4"
@@ -218,8 +218,8 @@ function PantallaInicio({ onIniciar }) {
               className="glass-card text-center p-4"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.7 + index * 0.1 }}
-              whileHover={{ scale: 1.03 }}
+              transition={{ delay: 0.7 + index * 0.1, ease: [0.22, 1, 0.36, 1] }}
+              whileHover={{ scale: 1.02, y: -4 }}
             >
               <div className="flex justify-center mb-2">
                 <estacion.Icono className="w-8 h-8 sm:w-9 sm:h-9 text-white/90" aria-hidden />
