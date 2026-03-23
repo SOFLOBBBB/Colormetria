@@ -1,0 +1,13 @@
+# Copia para Render si el build solo considera la raíz del repositorio (monorepo).
+# Preferible: desplegar con backend/Dockerfile vía render.yaml (runtime: docker).
+libgl1
+libgl1-mesa-dri
+libgl1-mesa-glx
+libegl1-mesa
+libgles2-mesa
+libgbm1
+libdrm2
+libglib2.0-0
+libsm6
+libxext6
+libxrender1

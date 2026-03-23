@@ -1,3 +1,13 @@
-libgles2-mesa
+# Render Native (buildpack): mismo stack Mesa/GLES que el Dockerfile.
+# Si el servicio usa rootDir=backend, este archivo debe estar aquí.
 libgl1
+libgl1-mesa-dri
+libgl1-mesa-glx
+libegl1-mesa
+libgles2-mesa
+libgbm1
+libdrm2
 libglib2.0-0
+libsm6
+libxext6
+libxrender1

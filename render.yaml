@@ -1,13 +1,13 @@
-# Blueprint para desplegar el backend ColorMetría en Render.
-# Ver: https://render.com/docs/blueprint-spec
+# Blueprint Render — backend ColorMetría
+# Runtime Docker: instala Mesa/EGL/GLES (libGLESv2.so.2). El runtime "python"
+# solo hace pip install y NO ejecuta el Dockerfile.
 
 services:
   - type: web
-    runtime: python
+    runtime: docker
     name: colormetria-api
-    rootDir: backend
-    buildCommand: pip install -r requirements.txt
-    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
     healthCheckPath: /health
     envVars:
       - key: MPLBACKEND
