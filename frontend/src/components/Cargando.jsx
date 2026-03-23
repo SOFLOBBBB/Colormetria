@@ -5,6 +5,7 @@
 
 import { motion } from 'framer-motion'
 import { Sparkles } from 'lucide-react'
+import { isRemoteBackend } from '../config/api.js'
 
 function Cargando() {
   // Mensajes que se muestran durante la carga
@@ -135,7 +136,7 @@ function Cargando() {
         
         <p className="text-white/40 text-sm mt-8">
           Esto puede tomar unos segundos...
-          {import.meta.env.VITE_API_URL && (
+          {isRemoteBackend() && (
             <span className="block mt-2 text-white/30 text-xs">
               La primera peticion puede tardar hasta 2 minutos si el servidor esta iniciando.
             </span>

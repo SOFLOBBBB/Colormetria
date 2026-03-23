@@ -9,7 +9,7 @@ import { useState, useRef, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Scissors, Palette, Sparkles, Camera, X, Check, Download, RefreshCw, Lightbulb } from 'lucide-react'
 import Webcam from 'react-webcam'
-import { urlApi } from '../config/api.js'
+import { apiUrl } from '../config/api.js'
 
 // Datos locales de cabello por estación
 const CABELLO_POR_ESTACION = {
@@ -160,7 +160,7 @@ function GeneradorCabello({ imagen, estacion, genero }) {
         formData.append('color', colorSeleccionado.id)
       }
 
-      const response = await fetch(`${urlApi}/cabello/generar`, {
+      const response = await fetch(apiUrl('/cabello/generar'), {
         method: 'POST',
         body: formData
       })

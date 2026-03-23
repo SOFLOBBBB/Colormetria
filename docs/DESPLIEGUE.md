@@ -48,7 +48,7 @@ Opciones para montar backend (FastAPI) y frontend (React/Vite) en servidores gra
 
 5. **Deploy**
    - Create Web Service. La primera vez tarda varios minutos (build de OpenCV/MediaPipe).
-   - Al terminar tendrás una URL como: `https://colormetria-api.onrender.com`.
+   - Al terminar tendrás una URL en Render; el API público puede apuntarse a un dominio propio (p. ej. `https://api.xn--colormetra-s8a.com`).
 
 6. **Importante (plan free)**
    - Tras ~15 minutos sin peticiones, el servicio se duerme.
@@ -73,7 +73,7 @@ Opciones para montar backend (FastAPI) y frontend (React/Vite) en servidores gra
 2. **Variables de entorno**
    - En Settings → Environment Variables añade:
    - **Name:** `VITE_API_URL`
-   - **Value:** `https://colormetria-api.onrender.com` (la URL de tu backend en Render).
+   - **Value:** `https://api.xn--colormetra-s8a.com` (URL pública del backend; ajusta si usas otra).
    - Aplica a Production, Preview y Development.
 
 3. **Build**
@@ -93,7 +93,7 @@ Opciones para montar backend (FastAPI) y frontend (React/Vite) en servidores gra
 3. **Build command:** `npm run build`.
 4. **Publish directory:** `frontend/dist`.
 5. **Variables de entorno:** en Site settings → Environment variables:
-   - `VITE_API_URL` = `https://colormetria-api.onrender.com`
+   - `VITE_API_URL` = `https://api.xn--colormetra-s8a.com`
 6. Deploy.
 
 ---
@@ -101,7 +101,7 @@ Opciones para montar backend (FastAPI) y frontend (React/Vite) en servidores gra
 ## Preparación del proyecto (ya incluida)
 
 - **Backend:** existe `backend/Dockerfile` para Render (o cualquier host que use Docker).
-- **Frontend:** en el código se usa `import.meta.env.VITE_API_URL || 'http://localhost:8000'`, así que en local sigue funcionando sin configurar nada y en Vercel/Netlify usará la URL del backend al hacer build.
+- **Frontend:** la base del API está en `frontend/src/config/api.js` (`API_BASE_URL`): en `vite dev` sin variable usa `http://localhost:8000`; en build de producción sin `VITE_API_URL` usa el dominio API por defecto. En Vercel/Netlify define `VITE_API_URL` para el backend desplegado.
 
 ---
 
@@ -110,7 +110,7 @@ Opciones para montar backend (FastAPI) y frontend (React/Vite) en servidores gra
 - [ ] Backend en GitHub con `backend/Dockerfile` y `backend/requirements.txt`.
 - [ ] Frontend en GitHub; en producción configurar `VITE_API_URL` en Vercel/Netlify.
 - [ ] Probar backend local: `cd backend && docker build -t colormetria-api . && docker run -p 8000:8000 colormetria-api`.
-- [ ] Probar frontend contra backend desplegado: `VITE_API_URL=https://tu-api.onrender.com npm run build && npm run preview`.
+- [ ] Probar frontend contra backend desplegado: `VITE_API_URL=https://api.xn--colormetra-s8a.com npm run build && npm run preview`.
 
 ---
 

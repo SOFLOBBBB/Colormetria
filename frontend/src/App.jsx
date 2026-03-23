@@ -15,7 +15,7 @@ import PanelRecomendaciones from './components/PanelRecomendaciones'
 import GeneradorCabello from './components/GeneradorCabello'
 import GaleriaOutfits from './components/GaleriaOutfits'
 import Cargando from './components/Cargando'
-import { urlApi, TIMEOUT_ANALIZAR_MS } from './config/api.js'
+import { apiUrl, TIMEOUT_ANALIZAR_MS } from './config/api.js'
 
 // Estados de la aplicación
 const ESTADOS = {
@@ -83,7 +83,7 @@ function App() {
       const controlador = new AbortController()
       const idTimeout = setTimeout(() => controlador.abort(), TIMEOUT_ANALIZAR_MS)
 
-      const respuestaAPI = await fetch(`${urlApi}/analizar`, {
+      const respuestaAPI = await fetch(apiUrl('/analizar'), {
         method: 'POST',
         body: formData,
         signal: controlador.signal

@@ -11,5 +11,5 @@ jobs:
     steps:
       - name: Ping health endpoint
         run: |
-          respuesta=$(curl -s -o /dev/null -w "%{http_code}" https://colormetria.onrender.com/health)
+          respuesta=$(curl -s -o /dev/null -w "%{http_code}" https://api.xn--colormetra-s8a.com/health)
           echo "Health check: $respuesta"
