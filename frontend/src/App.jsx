@@ -14,6 +14,8 @@ import ResultadosAnalisis from './components/ResultadosAnalisis'
 import PanelRecomendaciones from './components/PanelRecomendaciones'
 import GeneradorCabello from './components/GeneradorCabello'
 import GaleriaOutfits from './components/GaleriaOutfits'
+import DashboardPrincipal from './components/DashboardPrincipal'
+import SuitePremium from './components/SuitePremium'
 import Cargando from './components/Cargando'
 import { apiUrl, TIMEOUT_ANALIZAR_MS } from './config/api.js'
 
@@ -210,17 +212,28 @@ function App() {
               exit={{ opacity: 0, y: -12, transition: transicionSalida }}
               transition={transicionVista}
             >
-              <ResultadosAnalisis 
-                resultados={resultados}
-                imagen={imagenCapturada}
-              />
-              <PanelRecomendaciones 
+              <DashboardPrincipal
                 resultados={resultados}
                 genero={genero}
               />
+              <div id="suite-premium" className="scroll-mt-24">
+                <SuitePremium resultados={resultados} genero={genero} />
+              </div>
+              <div id="seccion-resultados-analisis" className="scroll-mt-24">
+                <ResultadosAnalisis 
+                  resultados={resultados}
+                  imagen={imagenCapturada}
+                />
+              </div>
+              <div id="seccion-recomendaciones" className="scroll-mt-24">
+                <PanelRecomendaciones 
+                  resultados={resultados}
+                  genero={genero}
+                />
+              </div>
               
               {/* Sección: Prueba Virtual de Cabello */}
-              <div className="section-container mt-12">
+              <div id="seccion-probador-cabello" className="section-container mt-12 scroll-mt-24">
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -235,7 +248,7 @@ function App() {
               </div>
               
               {/* Sección: Galería de Outfits */}
-              <div className="section-container mt-12">
+              <div id="seccion-galeria-outfits" className="section-container mt-12 scroll-mt-24">
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
