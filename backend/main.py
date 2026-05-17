@@ -9,7 +9,7 @@ from env_grafico import configurar_entorno_mesa_completo
 
 configurar_entorno_mesa_completo()
 
-from fastapi import FastAPI, UploadFile, File, HTTPException, Depends
+from fastapi import FastAPI, UploadFile, File, HTTPException, Depends, Form
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
@@ -20,6 +20,7 @@ import io
 import json
 import threading
 import time
+import base64
 from datetime import datetime
 
 from database import obtener_db, crear_tablas, CRUDAnalisis, CRUDRecomendacion
@@ -40,6 +41,12 @@ _analizadores_error: Optional[str] = None
 _analizadores_error_timestamp: Optional[float] = None
 
 COOLDOWN_REINTENTO_SEGUNDOS = 60
+HAIR_TRYON_ENABLED = os.getenv("ENABLE_HAIR_TRYON", "0").strip().lower() in {"1", "true", "yes", "on"}
+MAX_IMAGEN_BYTES = int(os.getenv("HAIR_TRYON_MAX_IMAGE_BYTES", str(6 * 1024 * 1024)))
+MAX_LADO_TRYON = int(os.getenv("HAIR_TRYON_MAX_SIDE", "1024"))
+ALLOWED_MIME_TYPES = {"image/jpeg", "image/png", "image/webp"}
+ALLOWED_BLEND_MODES = {"multiply", "overlay", "soft-light"}
+DEFAULT_BLEND_MODE = "multiply"
 
 
 def _obtener_analizadores() -> Dict[str, Any]:
@@ -78,6 +85,127 @@ def _obtener_analizadores() -> Dict[str, Any]:
         _analizadores_error_timestamp = time.time()
         print(f"[ColorMetria] Error cargando analizadores: {e}", flush=True)
         raise RuntimeError(_analizadores_error)
+
+
+def _normalizar_imagen_para_analisis(contenido: bytes, max_lado: int) -> tuple[Image.Image, np.ndarray]:
+    """Abre bytes de imagen, convierte a RGB y limita su resolución máxima."""
+    imagen_pil = Image.open(io.BytesIO(contenido))
+    if imagen_pil.mode != "RGB":
+        imagen_pil = imagen_pil.convert("RGB")
+    imagen_np = np.array(imagen_pil)
+    alto, ancho = imagen_np.shape[:2]
+    if max(alto, ancho) > max_lado:
+        if ancho > alto:
+            nuevo_ancho = max_lado
+            nuevo_alto = int(alto * max_lado / ancho)
+        else:
+            nuevo_alto = max_lado
+            nuevo_ancho = int(ancho * max_lado / alto)
+        imagen_pil = imagen_pil.resize((nuevo_ancho, nuevo_alto), Image.Resampling.LANCZOS)
+        imagen_np = np.array(imagen_pil)
+    return imagen_pil, imagen_np
+
+
+def _validar_upload_imagen(archivo: UploadFile, contenido: bytes, max_bytes: int):
+    """Valida mime y tamaño para reducir errores y consumo excesivo de recursos."""
+    if not contenido:
+        raise HTTPException(status_code=422, detail="La imagen está vacía")
+    if len(contenido) > max_bytes:
+        raise HTTPException(
+            status_code=413,
+            detail=f"La imagen excede el límite permitido de {max_bytes // (1024 * 1024)}MB",
+        )
+    mime = (archivo.content_type or "").lower().strip()
+    if mime and mime not in ALLOWED_MIME_TYPES:
+        raise HTTPException(
+            status_code=422,
+            detail=f"Formato de imagen no soportado. Usa: {', '.join(sorted(ALLOWED_MIME_TYPES))}",
+        )
+
+
+def _hex_a_rgb(hex_color: str) -> tuple[int, int, int]:
+    s = str(hex_color or "").strip().lstrip("#")
+    if len(s) == 3:
+        s = "".join(c * 2 for c in s)
+    if len(s) != 6:
+        raise ValueError("Color HEX inválido")
+    try:
+        r = int(s[0:2], 16)
+        g = int(s[2:4], 16)
+        b = int(s[4:6], 16)
+    except ValueError as err:
+        raise ValueError("Color HEX inválido") from err
+    return r, g, b
+
+
+def _simular_tinte_cabello(
+    imagen_np: np.ndarray,
+    landmarks: Any,
+    color_hex: str,
+    intensidad: int,
+    blend_mode: str,
+) -> np.ndarray:
+    """Aplica una simulación simple de tinte sobre una máscara elíptica del área de cabello."""
+    alto, ancho = imagen_np.shape[:2]
+    rgb = np.array(_hex_a_rgb(color_hex), dtype=np.float32)
+
+    puntos = np.array([(lm[0], lm[1]) for lm in landmarks], dtype=np.float32)
+    if puntos.size == 0:
+        raise ValueError("Landmarks inválidos")
+    x_min = max(0, int(np.min(puntos[:, 0])))
+    x_max = min(ancho - 1, int(np.max(puntos[:, 0])))
+    y_min = max(0, int(np.min(puntos[:, 1])))
+    y_max = min(alto - 1, int(np.max(puntos[:, 1])))
+
+    rostro_h = max(1, y_max - y_min)
+    rostro_w = max(1, x_max - x_min)
+    cx = int((x_min + x_max) / 2)
+    cy = int(y_min - rostro_h * 0.15)
+    rx = int(rostro_w * 0.72)
+    ry = int(rostro_h * 0.56)
+    if rx < 6 or ry < 6:
+        raise ValueError("No se pudo construir máscara de cabello")
+
+    yy, xx = np.ogrid[:alto, :ancho]
+    ellipse = ((xx - cx) / max(1, rx)) ** 2 + ((yy - cy) / max(1, ry)) ** 2 <= 1.0
+    solo_superior = yy <= y_min + int(rostro_h * 0.22)
+    mascara = ellipse & solo_superior
+    if not np.any(mascara):
+        raise ValueError("Máscara de cabello vacía")
+
+    base = imagen_np.astype(np.float32)
+    alpha = max(5, min(90, int(intensidad))) / 100.0
+    factor = np.clip(alpha, 0.05, 0.9)
+
+    if blend_mode == "overlay":
+        color_layer = np.broadcast_to(rgb, base.shape)
+        low = base <= 127.5
+        high = ~low
+        mezclado = np.empty_like(base)
+        mezclado[low] = (2.0 * base[low] * color_layer[low]) / 255.0
+        mezclado[high] = 255.0 - (2.0 * (255.0 - base[high]) * (255.0 - color_layer[high])) / 255.0
+        out = base * (1 - factor) + mezclado * factor
+    elif blend_mode == "soft-light":
+        color_n = rgb / 255.0
+        base_n = base / 255.0
+        blended = (1 - 2 * color_n) * (base_n ** 2) + 2 * color_n * base_n
+        out = (base_n * (1 - factor) + blended * factor) * 255.0
+    else:  # multiply
+        out = base.copy()
+        multiply = (base * rgb[None, None, :]) / 255.0
+        out = base * (1 - factor) + multiply * factor
+
+    resultado = base.copy()
+    resultado[mascara] = out[mascara]
+    return np.clip(resultado, 0, 255).astype(np.uint8)
+
+
+def _np_to_data_url_png(imagen_np: np.ndarray) -> str:
+    imagen = Image.fromarray(imagen_np.astype(np.uint8), mode="RGB")
+    buffer = io.BytesIO()
+    imagen.save(buffer, format="PNG")
+    encoded = base64.b64encode(buffer.getvalue()).decode("utf-8")
+    return f"data:image/png;base64,{encoded}"
 
 
 def _prewarm_analizadores():
@@ -154,7 +282,7 @@ async def root():
     return {
         "mensaje": "ColorMetría API v2.0",
         "version": "2.0.0",
-        "endpoints": {"/analizar": "POST", "/health": "GET"},
+        "endpoints": {"/analizar": "POST", "/hair-tryon": "POST", "/health": "GET"},
     }
 
 
@@ -180,22 +308,7 @@ async def analizar(
         )
     try:
         contenido = await archivo.read()
-        imagen_pil = Image.open(io.BytesIO(contenido))
-        if imagen_pil.mode != "RGB":
-            imagen_pil = imagen_pil.convert("RGB")
-        imagen_np = np.array(imagen_pil)
-
-        alto, ancho = imagen_np.shape[:2]
-        max_lado = 1024
-        if max(alto, ancho) > max_lado:
-            if ancho > alto:
-                nuevo_ancho = max_lado
-                nuevo_alto = int(alto * max_lado / ancho)
-            else:
-                nuevo_alto = max_lado
-                nuevo_ancho = int(ancho * max_lado / alto)
-            imagen_pil = imagen_pil.resize((nuevo_ancho, nuevo_alto), Image.Resampling.LANCZOS)
-            imagen_np = np.array(imagen_pil)
+        imagen_pil, imagen_np = _normalizar_imagen_para_analisis(contenido, 1024)
 
         detector_rostro = analizadores["detector_rostro"]
         deteccion = detector_rostro.detectar(imagen_np)
@@ -333,6 +446,75 @@ async def analizar(
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/hair-tryon")
+async def hair_tryon(
+    archivo: UploadFile = File(...),
+    color_hex: str = Form("#8B4513"),
+    intensidad: int = Form(38),
+    blend_mode: str = Form(DEFAULT_BLEND_MODE),
+):
+    """Simulación visual de tinte sobre imagen usando landmarks faciales."""
+    if not HAIR_TRYON_ENABLED:
+        raise HTTPException(status_code=503, detail="Hair try-on deshabilitado temporalmente")
+    try:
+        analizadores = _obtener_analizadores()
+    except RuntimeError as e:
+        raise HTTPException(
+            status_code=503,
+            detail=f"Servicio de análisis no disponible: {e}. Reintente más tarde.",
+        )
+
+    contenido = await archivo.read()
+    _validar_upload_imagen(archivo, contenido, MAX_IMAGEN_BYTES)
+
+    if blend_mode not in ALLOWED_BLEND_MODES:
+        raise HTTPException(
+            status_code=422,
+            detail=f"blend_mode inválido. Permitidos: {', '.join(sorted(ALLOWED_BLEND_MODES))}",
+        )
+    try:
+        intensidad = int(intensidad)
+    except (TypeError, ValueError):
+        raise HTTPException(status_code=422, detail="intensidad debe ser un número entero")
+    if not (5 <= intensidad <= 90):
+        raise HTTPException(status_code=422, detail="intensidad debe estar entre 5 y 90")
+
+    try:
+        _, imagen_np = _normalizar_imagen_para_analisis(contenido, MAX_LADO_TRYON)
+        detector_rostro = analizadores["detector_rostro"]
+        deteccion = detector_rostro.detectar(imagen_np)
+        if deteccion is None:
+            raise HTTPException(status_code=422, detail="No se detectó rostro en la imagen")
+        landmarks = deteccion["landmarks"]
+
+        imagen_resultado = _simular_tinte_cabello(
+            imagen_np=imagen_np,
+            landmarks=landmarks,
+            color_hex=color_hex,
+            intensidad=intensidad,
+            blend_mode=blend_mode,
+        )
+        preview_data_url = _np_to_data_url_png(imagen_resultado)
+        return JSONResponse(
+            content={
+                "exito": True,
+                "modo": "simulacion_visual",
+                "parametros": {
+                    "color_hex": color_hex,
+                    "intensidad": int(intensidad),
+                    "blend_mode": blend_mode,
+                },
+                "preview_data_url": preview_data_url,
+            }
+        )
+    except HTTPException:
+        raise
+    except ValueError as e:
+        raise HTTPException(status_code=422, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"No se pudo generar preview: {e}")
 
 
 if __name__ == "__main__":

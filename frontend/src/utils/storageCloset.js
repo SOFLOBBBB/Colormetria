@@ -2,6 +2,7 @@ const KEYS = {
   prendas: 'colormetria_closet_prendas_v1',
   outfits: 'colormetria_closet_outfits_v1',
   inspiraciones: 'colormetria_outfit_inspiraciones_v1',
+  probadorPreview: 'colormetria_probador_preview_v1',
 }
 
 function safeParse(raw, fallback) {
@@ -70,4 +71,22 @@ export function addInspiracion(outfit) {
   const next = [nueva, ...actual]
   writeArray(KEYS.inspiraciones, next)
   return next
+}
+
+export function getProbadorPreview() {
+  if (typeof window === 'undefined') return null
+  return safeParse(window.localStorage.getItem(KEYS.probadorPreview), null)
+}
+
+export function setProbadorPreview(payload) {
+  if (typeof window === 'undefined') return null
+  window.localStorage.setItem(KEYS.probadorPreview, JSON.stringify(payload))
+  window.dispatchEvent(new CustomEvent('closet-updated'))
+  return payload
+}
+
+export function clearProbadorPreview() {
+  if (typeof window === 'undefined') return
+  window.localStorage.removeItem(KEYS.probadorPreview)
+  window.dispatchEvent(new CustomEvent('closet-updated'))
 }

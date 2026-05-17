@@ -115,6 +115,7 @@ function GeneradorCabello({ imagen, estacion, genero }) {
   const webcamRef = useRef(null)
 
   const datos = CABELLO_POR_ESTACION[estacion] || CABELLO_POR_ESTACION.verano
+  const flujoTryOnActivo = true
 
   const capturarFoto = useCallback(() => {
     if (!webcamRef.current) return
@@ -208,36 +209,34 @@ function GeneradorCabello({ imagen, estacion, genero }) {
           <Scissors className="w-6 h-6 text-white" />
         </div>
         <div>
-          <p className="font-body text-[11px] uppercase tracking-[0.16em] text-white/45 mb-1">Hair Studio IA</p>
-          <h3 className="font-display text-xl font-semibold">Recomendaciones de Cabello</h3>
-          <p className="text-white/60 text-sm">Estilos y colores ideales para tu colorimetría</p>
+          <p className="font-body text-[11px] uppercase tracking-[0.16em] text-white/45 mb-1">Hair Studio</p>
+          <h3 className="font-display text-xl font-semibold">Prueba visual de color de cabello</h3>
+          <p className="text-white/60 text-sm">Simulación visual en pruebas. Ajusta tonos y compara resultados sobre tu foto.</p>
         </div>
       </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 xl:gap-8">
         {/* Panel izquierdo */}
         <div>
-          <div className="mb-5">
-            <div className="rounded-2xl border border-violet-400/20 bg-violet-500/10 p-4 mb-3">
-              <p className="font-body text-[11px] uppercase tracking-[0.16em] text-violet-200/80 mb-1">
-                Simulación visual en pruebas
-              </p>
-              <h4 className="font-display text-lg text-white/95">Prueba visual de color de cabello</h4>
-              <p className="text-sm text-white/70 mt-1">
-                Simulación en pruebas con segmentación visual. El resultado puede variar según iluminación, cabello y fondo.
-              </p>
-            </div>
+          <div className="mb-5 rounded-2xl border border-violet-400/20 bg-violet-500/10 p-4">
+            <p className="font-body text-[11px] uppercase tracking-[0.16em] text-violet-200/80 mb-1">
+              Flujo principal
+            </p>
+            <h4 className="font-display text-lg text-white/95">HairTryOnLab</h4>
+            <p className="text-sm text-white/70 mt-1 mb-3">
+              Simulación en pruebas con segmentación visual. El resultado puede variar según iluminación, cabello y fondo.
+            </p>
             <HairTryOnLab
               image={imagenGenerada || imagenCapturada}
               suggestedColors={datos.colores || []}
             />
           </div>
 
-          {/* Estilos recomendados */}
+          {/* Recomendaciones editoriales */}
           <div className="mb-5 p-4 rounded-2xl border border-white/[0.08] bg-white/[0.03] ring-1 ring-white/[0.04]">
             <h4 className="font-semibold mb-3 flex items-center gap-2 text-white/90">
               <Scissors className="w-4 h-4 text-violet-400" />
-              Recomendaciones editoriales de estilo
+              Estilos recomendados
             </h4>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               {datos.estilos.map((estilo) => (
@@ -256,6 +255,9 @@ function GeneradorCabello({ imagen, estacion, genero }) {
                     <p className="font-medium text-sm">{estilo.nombre}</p>
                   </div>
                   <p className="text-white/55 text-xs leading-snug">{estilo.descripcion}</p>
+                  <span className="mt-2 inline-flex text-[11px] px-2 py-1 rounded-full border border-violet-300/25 bg-violet-500/10 text-violet-100">
+                    Ver recomendación
+                  </span>
                 </motion.button>
               ))}
             </div>
@@ -278,11 +280,11 @@ function GeneradorCabello({ imagen, estacion, genero }) {
             )}
           </AnimatePresence>
 
-          {/* Colores recomendados */}
+          {/* Colores para estación */}
           <div className="mb-5 p-4 rounded-2xl border border-white/[0.08] bg-white/[0.03] ring-1 ring-white/[0.04]">
             <h4 className="font-semibold mb-3 flex items-center gap-2 text-white/90">
               <Palette className="w-4 h-4 text-fuchsia-400" />
-              Colores para tu Estación
+              Colores para estación
             </h4>
             <div className="flex flex-wrap gap-3">
               {datos.colores.map((color) => (
@@ -317,7 +319,7 @@ function GeneradorCabello({ imagen, estacion, genero }) {
             )}
           </div>
 
-          {/* Consejo general */}
+          {/* Consejo experto */}
           <div className="p-4 rounded-xl bg-gradient-to-r from-violet-500/10 to-fuchsia-500/10 border border-violet-500/20 ring-1 ring-violet-300/10">
             <p className="text-white/70 text-sm leading-relaxed flex items-start gap-2">
               <Lightbulb className="w-4 h-4 text-fuchsia-300 mt-0.5 flex-shrink-0" aria-hidden />
@@ -476,30 +478,27 @@ function GeneradorCabello({ imagen, estacion, genero }) {
             </div>
           )}
 
-          {/* Botón generar con IA */}
-          <motion.button
-            type="button"
-            onClick={generarCabello}
-            disabled={!estiloSeleccionado || !imagenCapturada || cargando}
-            className={`w-full py-4 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all ${estiloSeleccionado && imagenCapturada && !cargando
-                ? 'bg-gradient-to-r from-violet-500 to-fuchsia-500 hover:from-violet-600 hover:to-fuchsia-600 shadow-lg shadow-violet-500/30'
-                : 'bg-white/10 text-white/40 cursor-not-allowed'
-              }`}
-            whileHover={estiloSeleccionado && imagenCapturada && !cargando ? { scale: 1.02 } : {}}
-            whileTap={estiloSeleccionado && imagenCapturada && !cargando ? { scale: 0.98 } : {}}
-          >
-            <Sparkles className="w-5 h-5" />
-            {!estiloSeleccionado
-              ? 'Selecciona un estilo primero'
-              : !imagenCapturada
-                ? 'Necesitas una imagen'
-                : cargando
-                  ? 'Generando...'
-                  : 'Generar con IA'}
-          </motion.button>
-
-          {!estiloSeleccionado && (
-            <p className="text-white/30 text-xs text-center mt-2">← Selecciona un estilo de la lista</p>
+          {!flujoTryOnActivo && (
+            <motion.button
+              type="button"
+              onClick={generarCabello}
+              disabled={!estiloSeleccionado || !imagenCapturada || cargando}
+              className={`w-full py-4 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all ${estiloSeleccionado && imagenCapturada && !cargando
+                  ? 'bg-gradient-to-r from-violet-500 to-fuchsia-500 hover:from-violet-600 hover:to-fuchsia-600 shadow-lg shadow-violet-500/30'
+                  : 'bg-white/10 text-white/40 cursor-not-allowed'
+                }`}
+              whileHover={estiloSeleccionado && imagenCapturada && !cargando ? { scale: 1.02 } : {}}
+              whileTap={estiloSeleccionado && imagenCapturada && !cargando ? { scale: 0.98 } : {}}
+            >
+              <Sparkles className="w-5 h-5" />
+              {!estiloSeleccionado
+                ? 'Selecciona un estilo primero'
+                : !imagenCapturada
+                  ? 'Necesitas una imagen'
+                  : cargando
+                    ? 'Generando...'
+                    : 'Generar con IA'}
+            </motion.button>
           )}
 
           {/* Error */}

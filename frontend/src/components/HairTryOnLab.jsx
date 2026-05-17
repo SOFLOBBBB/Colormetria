@@ -11,6 +11,7 @@ import {
   ChevronUp,
 } from 'lucide-react'
 import { buildHeuristicMask, loadHairSegmenter } from '../utils/hairSegmentation'
+import { apiUrl } from '../config/api'
 
 const BLEND_MODES = ['multiply', 'overlay', 'soft-light']
 
@@ -54,6 +55,7 @@ function HairTryOnLab({ image, suggestedColors = [] }) {
   const currentImageRef = useRef(null)
   const currentMaskDataRef = useRef(null)
   const [imageSrc, setImageSrc] = useState(null)
+  const [backendPreviewSrc, setBackendPreviewSrc] = useState(null)
   const [loadError, setLoadError] = useState('')
 
   const colorFallback = suggestedColors[0]?.hex || '#8B4513'
@@ -66,6 +68,7 @@ function HairTryOnLab({ image, suggestedColors = [] }) {
   const [segmentationError, setSegmentationError] = useState('')
   const [usingFallback, setUsingFallback] = useState(false)
   const [manualOpen, setManualOpen] = useState(false)
+  const [isAdvancedProcessing, setIsAdvancedProcessing] = useState(false)
 
   useEffect(() => {
     const { src, revoke } = resolveImageSource(image)
@@ -74,6 +77,8 @@ function HairTryOnLab({ image, suggestedColors = [] }) {
     setSegmentationError('')
     setSegmentationMode(src ? 'loading-model' : 'idle')
     setUsingFallback(false)
+    setBackendPreviewSrc(null)
+    setIsAdvancedProcessing(false)
     currentMaskDataRef.current = null
 
     return () => {
@@ -162,6 +167,7 @@ function HairTryOnLab({ image, suggestedColors = [] }) {
   useEffect(() => {
     if (!imageSrc || !canvasRef.current) return
 
+    const renderSrc = backendPreviewSrc || imageSrc
     const img = new Image()
     img.onload = () => {
       const canvas = canvasRef.current
@@ -180,7 +186,7 @@ function HairTryOnLab({ image, suggestedColors = [] }) {
       ctx.clearRect(0, 0, width, height)
       ctx.drawImage(img, 0, 0, width, height)
 
-      if (appliedConfig) {
+      if (appliedConfig && !backendPreviewSrc) {
         const intensityNorm = clamp(appliedConfig.intensity / 100, 0, 1)
         const { r, g, b } = hexToRgb(appliedConfig.color)
 
@@ -256,22 +262,85 @@ function HairTryOnLab({ image, suggestedColors = [] }) {
       setLoadError('No se pudo cargar la imagen para el laboratorio visual.')
     }
 
-    img.src = imageSrc
-  }, [imageSrc, appliedConfig, usingFallback])
+    img.src = renderSrc
+  }, [imageSrc, backendPreviewSrc, appliedConfig, usingFallback])
 
-  const handleApply = () => {
-    setAppliedConfig({
+  const resolveImageBlob = async () => {
+    if (!image) return null
+    if (image instanceof File) return image
+    if (image instanceof Blob) return new File([image], 'hair-input.png', { type: image.type || 'image/png' })
+    if (typeof image === 'string') {
+      const response = await fetch(image)
+      const blob = await response.blob()
+      return new File([blob], 'hair-input.png', { type: blob.type || 'image/png' })
+    }
+    return null
+  }
+
+  const handleApply = async () => {
+    const nextConfig = {
       color: selectedColor,
       blendMode,
       intensity,
       mask: { ...draftMask },
-    })
+    }
+    setAppliedConfig(nextConfig)
+    setLoadError('')
+    setSegmentationError('')
+    setIsAdvancedProcessing(true)
+
+    try {
+      const imageFile = await resolveImageBlob()
+      if (!imageFile) {
+        throw new Error('No hay imagen disponible para simulación avanzada.')
+      }
+      const formData = new FormData()
+      formData.append('archivo', imageFile)
+      formData.append('color_hex', selectedColor)
+      formData.append('intensidad', String(intensity))
+      formData.append('blend_mode', blendMode)
+
+      const controller = new AbortController()
+      const timeoutId = window.setTimeout(() => controller.abort(), 25000)
+      let response
+      try {
+        response = await fetch(apiUrl('/hair-tryon'), {
+          method: 'POST',
+          body: formData,
+          signal: controller.signal,
+        })
+      } finally {
+        window.clearTimeout(timeoutId)
+      }
+
+      if (!response.ok) {
+        throw new Error(`Simulación avanzada no disponible (${response.status})`)
+      }
+      const data = await response.json()
+      if (!data?.exito || !data?.preview_data_url) {
+        throw new Error('Respuesta inválida de /hair-tryon')
+      }
+
+      setBackendPreviewSrc(data.preview_data_url)
+      setUsingFallback(false)
+      if (segmentationMode === 'fallback') {
+        setSegmentationMode('ready')
+      }
+    } catch (err) {
+      setBackendPreviewSrc(null)
+      setUsingFallback(true)
+      setSegmentationMode('fallback')
+      setSegmentationError('Modo simulación manual activado')
+    } finally {
+      setIsAdvancedProcessing(false)
+    }
   }
 
   const handleReset = () => {
     setDraftMask(DEFAULT_MASK)
     setIntensity(DEFAULT_MASK.intensity)
     setAppliedConfig(null)
+    setBackendPreviewSrc(null)
   }
 
   const handleDownload = () => {
@@ -323,6 +392,12 @@ function HairTryOnLab({ image, suggestedColors = [] }) {
             Segmentando imagen
           </span>
         )}
+        {isAdvancedProcessing && (
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-fuchsia-300/25 bg-fuchsia-500/10 text-fuchsia-100">
+            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+            Procesando con simulación avanzada
+          </span>
+        )}
         {segmentationMode === 'ready' && !usingFallback && (
           <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-emerald-300/25 bg-emerald-500/10 text-emerald-100">
             <CheckCircle2 className="w-3.5 h-3.5" />
@@ -342,13 +417,15 @@ function HairTryOnLab({ image, suggestedColors = [] }) {
         </p>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-[1.1fr_0.9fr] gap-4">
-        <div className="rounded-xl border border-white/10 bg-black/20 p-2 overflow-auto max-h-[520px]">
-          <canvas ref={canvasRef} className="w-full h-auto max-h-[500px] mx-auto block rounded-lg bg-black/30 object-contain" />
+      <div className="grid grid-cols-1 lg:grid-cols-[1.08fr_0.92fr] gap-4">
+        <div className="rounded-xl border border-white/10 bg-black/20 p-2 overflow-hidden">
+          <div className="mx-auto w-full max-w-[620px]">
+            <canvas ref={canvasRef} className="w-full h-auto max-h-[500px] mx-auto block rounded-lg bg-black/30 object-contain" />
+          </div>
         </div>
 
         <div className="space-y-4">
-          <div>
+          <div className="rounded-xl border border-white/10 bg-white/[0.03] p-3">
             <p className="text-xs uppercase tracking-[0.18em] text-white/45 mb-2">Tono</p>
             <div className="flex flex-wrap gap-2 mb-2">
               {suggestedColors.map((item) => (
@@ -372,15 +449,15 @@ function HairTryOnLab({ image, suggestedColors = [] }) {
             />
           </div>
 
-          <div>
+          <div className="rounded-xl border border-white/10 bg-white/[0.03] p-3">
             <p className="text-xs uppercase tracking-[0.18em] text-white/45 mb-2">Blend mode</p>
-            <div className="grid grid-cols-3 gap-2">
+            <div className="inline-flex w-full rounded-xl border border-white/10 bg-white/5 p-1 gap-1">
               {BLEND_MODES.map((mode) => (
                 <button
                   key={mode}
                   type="button"
                   onClick={() => setBlendMode(mode)}
-                  className={`min-h-[40px] text-xs rounded-lg border capitalize ${
+                  className={`min-h-[40px] min-w-0 flex-1 px-2 text-xs rounded-lg border capitalize whitespace-nowrap ${
                     blendMode === mode
                       ? 'border-violet-300/50 bg-violet-500/20 text-white'
                       : 'border-white/10 bg-white/5 text-white/75'
@@ -392,7 +469,7 @@ function HairTryOnLab({ image, suggestedColors = [] }) {
             </div>
           </div>
 
-          <div>
+          <div className="rounded-xl border border-white/10 bg-white/[0.03] p-3">
             <div className="flex justify-between text-xs text-white/65 mb-1">
               <span>Intensidad</span>
               <span>{intensity}%</span>
@@ -447,20 +524,21 @@ function HairTryOnLab({ image, suggestedColors = [] }) {
             )}
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-2">
             <motion.button
               type="button"
               onClick={handleApply}
-              className="min-h-[44px] px-3 rounded-xl bg-gradient-to-r from-violet-500 to-fuchsia-500 text-sm font-medium inline-flex items-center justify-center gap-1.5 text-center"
+              disabled={isAdvancedProcessing}
+              className="min-h-[44px] min-w-[150px] px-3 rounded-xl bg-gradient-to-r from-violet-500 to-fuchsia-500 text-sm font-medium inline-flex items-center justify-center gap-1.5 text-center whitespace-nowrap"
               whileHover={{ scale: 1.01 }}
             >
-              <Wand2 className="w-4 h-4" />
-              Aplicar tono
+              {isAdvancedProcessing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Wand2 className="w-4 h-4" />}
+              {isAdvancedProcessing ? 'Procesando...' : 'Aplicar tono'}
             </motion.button>
             <button
               type="button"
               onClick={handleReset}
-              className="min-h-[44px] px-3 rounded-xl border border-white/15 bg-white/5 text-sm inline-flex items-center justify-center gap-1.5 text-center"
+              className="min-h-[44px] min-w-[150px] px-3 rounded-xl border border-white/15 bg-white/5 text-sm inline-flex items-center justify-center gap-1.5 text-center whitespace-nowrap"
             >
               <RotateCcw className="w-4 h-4" />
               Restablecer
@@ -468,10 +546,10 @@ function HairTryOnLab({ image, suggestedColors = [] }) {
             <button
               type="button"
               onClick={handleDownload}
-              className="min-h-[44px] px-3 rounded-xl border border-white/15 bg-white/5 text-sm inline-flex items-center justify-center gap-1.5 text-center"
+              className="min-h-[44px] min-w-[150px] px-3 rounded-xl border border-white/15 bg-white/5 text-sm inline-flex items-center justify-center gap-1.5 text-center whitespace-nowrap"
             >
               <Download className="w-4 h-4" />
-              Descargar
+              Descargar preview
             </button>
           </div>
         </div>

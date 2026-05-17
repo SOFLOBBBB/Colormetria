@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { motion } from 'framer-motion'
 import { Layers, Sparkles, Shirt, Footprints, Shield, Gem, BadgeHelp, Hand } from 'lucide-react'
-import { getClosetPrendas } from '../utils/storageCloset'
+import { getClosetPrendas, getProbadorPreview } from '../utils/storageCloset'
 import { getPrendasDemo } from '../data/prendasDemo'
 
 function agruparPorCategoria(prendas, genero) {
@@ -40,9 +40,13 @@ function getSiluetaClass(genero) {
 
 function ProbadorVisual({ genero, estacion = 'verano' }) {
   const [prendas, setPrendas] = useState(() => getClosetPrendas())
+  const [preview, setPreview] = useState(() => getProbadorPreview())
   const [seleccionDemo, setSeleccionDemo] = useState({})
   useEffect(() => {
-    const refresh = () => setPrendas(getClosetPrendas())
+    const refresh = () => {
+      setPrendas(getClosetPrendas())
+      setPreview(getProbadorPreview())
+    }
     window.addEventListener('closet-updated', refresh)
     return () => window.removeEventListener('closet-updated', refresh)
   }, [])
@@ -58,6 +62,7 @@ function ProbadorVisual({ genero, estacion = 'verano' }) {
   }, [demo])
 
   const composicion = useMemo(() => {
+    if (preview?.prendas?.length) return agruparPorCategoria(preview.prendas, genero)
     if (prendas.length) return agruparPorCategoria(prendas, genero)
     const fallback = agruparPorCategoria([], genero)
     Object.keys(fallback).forEach((cat) => {
@@ -69,6 +74,31 @@ function ProbadorVisual({ genero, estacion = 'verano' }) {
   }, [prendas, genero, demoAgrupada, seleccionDemo])
   const entries = Object.entries(composicion)
   const siluetaClass = getSiluetaClass(genero)
+  const layerSuperior = composicion.superior
+  const layerInferior = composicion.inferior
+  const layerVestido = composicion['vestido/falda']
+  const layerCalzado = composicion.calzado
+  const layerAccesorio = composicion.accesorio
+  const layerAbrigo = composicion['abrigo/blazer']
+  const hasVestido = genero === 'femenino' && !!layerVestido
+  const isMasculino = genero === 'masculino'
+
+  const accesorioNombre = (layerAccesorio?.nombre || '').toLowerCase()
+  const accesorioIsBolsa = accesorioNombre.includes('bolsa') || accesorioNombre.includes('clutch') || accesorioNombre.includes('backpack')
+  const accesorioIsCollar = accesorioNombre.includes('collar')
+  const accesorioIsAretes = accesorioNombre.includes('aretes')
+  const accesorioIsCinturon = accesorioNombre.includes('cinturon')
+  const accesorioIsCorbata = accesorioNombre.includes('corbata')
+  const accesorioIsReloj = accesorioNombre.includes('reloj')
+  const accesorioIsGorra = accesorioNombre.includes('gorra')
+
+  const inferiorColor = layerInferior?.color || '#586172'
+  const superiorColor = layerSuperior?.color || '#9aa1b0'
+  const vestidoColor = layerVestido?.color || '#ad8fb8'
+  const calzadoColor = layerCalzado?.color || '#2f3443'
+  const abrigoColor = layerAbrigo?.color || '#6f7487'
+  const accesorioColor = layerAccesorio?.color || '#c4b8d4'
+  const sourceTag = preview?.prendas?.length ? 'Look enviado desde Outfit Studio' : prendas.length ? 'Prendas del clóset local' : 'Demo inteligente'
 
   return (
     <div className="glass-card glass-card--elevated ring-1 ring-white/[0.08] border border-white/[0.1] p-5 sm:p-6">
@@ -136,6 +166,61 @@ function ProbadorVisual({ genero, estacion = 'verano' }) {
           border-radius: 50%;
           background: radial-gradient(circle at center, rgba(255, 245, 220, 0.65), rgba(173, 164, 147, 0.24) 72%, transparent 75%);
         }
+        .look-layer {
+          position: absolute;
+          left: 50%;
+          transform: translateX(-50%);
+          transition: all 220ms ease;
+          box-shadow: 0 16px 22px rgba(0, 0, 0, 0.32), inset 0 1px 0 rgba(255, 255, 255, 0.18);
+        }
+        .layer-superior {
+          top: 122px;
+          width: 150px;
+          height: 110px;
+          border-radius: 24% 24% 30% 30% / 20% 20% 38% 38%;
+          clip-path: polygon(10% 16%, 20% 4%, 37% 0, 50% 9%, 63% 0, 80% 4%, 90% 16%, 84% 26%, 76% 40%, 75% 100%, 25% 100%, 24% 40%, 16% 26%);
+        }
+        .layer-inferior {
+          top: 222px;
+          width: 142px;
+          height: 144px;
+          clip-path: polygon(14% 0, 86% 0, 92% 16%, 74% 100%, 56% 100%, 50% 52%, 44% 100%, 26% 100%, 8% 16%);
+          border-radius: 12% 12% 18% 18%;
+        }
+        .layer-vestido {
+          top: 122px;
+          width: 156px;
+          height: 248px;
+          clip-path: polygon(12% 10%, 22% 0, 40% 0, 50% 8%, 60% 0, 78% 0, 88% 10%, 79% 22%, 72% 40%, 86% 100%, 14% 100%, 28% 40%, 21% 22%);
+          border-radius: 12% 12% 26% 26%;
+        }
+        .layer-abrigo {
+          top: 112px;
+          width: 170px;
+          height: 196px;
+          border-radius: 22% 22% 16% 16% / 12% 12% 18% 18%;
+          clip-path: polygon(6% 12%, 18% 2%, 35% 0, 50% 14%, 65% 0, 82% 2%, 94% 12%, 88% 28%, 80% 40%, 76% 100%, 24% 100%, 20% 40%, 12% 28%);
+        }
+        .layer-calzado {
+          position: absolute;
+          bottom: 38px;
+          width: 42px;
+          height: 16px;
+          border-radius: 42% 58% 48% 52%;
+          box-shadow: 0 8px 16px rgba(0, 0, 0, 0.35);
+        }
+        .calzado-left {
+          left: calc(50% - 44px);
+          transform: rotate(-6deg);
+        }
+        .calzado-right {
+          left: calc(50% + 2px);
+          transform: rotate(5deg);
+        }
+        .layer-accesorio {
+          position: absolute;
+          box-shadow: 0 10px 16px rgba(0, 0, 0, 0.28);
+        }
       `}</style>
       <div className="flex items-center gap-3 mb-5">
         <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-violet-400/30 to-fuchsia-400/20 border border-violet-300/25 flex items-center justify-center">
@@ -153,6 +238,135 @@ function ProbadorVisual({ genero, estacion = 'verano' }) {
             <div className="maniqui-cabeza" />
             <div className="maniqui-cuello" />
             <div className="maniqui-torso" />
+            {hasVestido && (
+              <div
+                className="look-layer layer-vestido"
+                style={{ background: `linear-gradient(180deg, ${vestidoColor}F0 0%, ${vestidoColor}C2 100%)` }}
+                aria-label={`Capa vestido/falda: ${layerVestido?.nombre}`}
+              />
+            )}
+            {layerSuperior && (
+              <div
+                className="look-layer layer-superior"
+                style={{ background: `linear-gradient(180deg, ${superiorColor}E8 0%, ${superiorColor}B8 100%)` }}
+                aria-label={`Capa superior: ${layerSuperior.nombre}`}
+              />
+            )}
+            {layerInferior && !hasVestido && (
+              <div
+                className="look-layer layer-inferior"
+                style={{ background: `linear-gradient(180deg, ${inferiorColor}E8 0%, ${inferiorColor}B4 100%)` }}
+                aria-label={`Capa inferior: ${layerInferior.nombre}`}
+              />
+            )}
+            {layerAbrigo && (
+              <div
+                className="look-layer layer-abrigo"
+                style={{ background: `linear-gradient(180deg, ${abrigoColor}D9 0%, ${abrigoColor}A6 100%)` }}
+                aria-label={`Capa abrigo/blazer: ${layerAbrigo.nombre}`}
+              />
+            )}
+            {layerCalzado && (
+              <>
+                <div className="layer-calzado calzado-left" style={{ backgroundColor: calzadoColor }} aria-hidden />
+                <div className="layer-calzado calzado-right" style={{ backgroundColor: calzadoColor }} aria-hidden />
+              </>
+            )}
+            {layerAccesorio && (
+              <>
+                {(accesorioIsCollar || (!accesorioIsBolsa && !accesorioIsReloj && !accesorioIsCorbata && !accesorioIsCinturon && !accesorioIsAretes && !accesorioIsGorra)) && (
+                  <div
+                    className="layer-accesorio"
+                    style={{
+                      top: '128px',
+                      left: '50%',
+                      width: '60px',
+                      height: '14px',
+                      transform: 'translateX(-50%)',
+                      borderRadius: '0 0 20px 20px',
+                      border: `2px solid ${accesorioColor}`,
+                      borderTop: 'none',
+                    }}
+                  />
+                )}
+                {accesorioIsAretes && (
+                  <>
+                    <div className="layer-accesorio" style={{ top: '68px', left: '69px', width: '8px', height: '14px', borderRadius: '999px', backgroundColor: accesorioColor }} />
+                    <div className="layer-accesorio" style={{ top: '68px', right: '69px', width: '8px', height: '14px', borderRadius: '999px', backgroundColor: accesorioColor }} />
+                  </>
+                )}
+                {accesorioIsCorbata && isMasculino && (
+                  <div
+                    className="layer-accesorio"
+                    style={{
+                      top: '150px',
+                      left: '50%',
+                      width: '22px',
+                      height: '96px',
+                      transform: 'translateX(-50%)',
+                      backgroundColor: accesorioColor,
+                      clipPath: 'polygon(50% 0, 100% 18%, 78% 100%, 22% 100%, 0 18%)',
+                    }}
+                  />
+                )}
+                {accesorioIsCinturon && (
+                  <div
+                    className="layer-accesorio"
+                    style={{
+                      top: '242px',
+                      left: '50%',
+                      width: '138px',
+                      height: '10px',
+                      transform: 'translateX(-50%)',
+                      backgroundColor: accesorioColor,
+                      borderRadius: '999px',
+                    }}
+                  />
+                )}
+                {accesorioIsBolsa && (
+                  <div
+                    className="layer-accesorio"
+                    style={{
+                      top: '226px',
+                      right: '4px',
+                      width: '34px',
+                      height: '44px',
+                      borderRadius: '12px',
+                      backgroundColor: accesorioColor,
+                      border: '1px solid rgba(255,255,255,0.35)',
+                    }}
+                  />
+                )}
+                {accesorioIsReloj && (
+                  <div
+                    className="layer-accesorio"
+                    style={{
+                      top: '186px',
+                      right: '48px',
+                      width: '14px',
+                      height: '14px',
+                      borderRadius: '999px',
+                      backgroundColor: accesorioColor,
+                      border: '1px solid rgba(255,255,255,0.38)',
+                    }}
+                  />
+                )}
+                {accesorioIsGorra && (
+                  <div
+                    className="layer-accesorio"
+                    style={{
+                      top: '26px',
+                      left: '50%',
+                      width: '78px',
+                      height: '28px',
+                      transform: 'translateX(-50%)',
+                      borderRadius: '16px 16px 8px 8px',
+                      backgroundColor: accesorioColor,
+                    }}
+                  />
+                )}
+              </>
+            )}
             <div className="maniqui-base" />
             {entries.map(([categoria, prenda], idx) => (
               <motion.div
@@ -174,6 +388,9 @@ function ProbadorVisual({ genero, estacion = 'verano' }) {
                 </span>
               </motion.div>
             ))}
+          </div>
+          <div className="absolute top-3 left-3 rounded-full border border-white/15 bg-black/25 px-3 py-1">
+            <span className="text-[10px] uppercase tracking-[0.16em] text-white/65">{sourceTag}</span>
           </div>
           <p className="text-center text-xs text-white/50 mt-3">
             Vista de composición para construir el look por capas.

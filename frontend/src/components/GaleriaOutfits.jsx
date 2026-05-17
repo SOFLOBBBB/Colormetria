@@ -22,7 +22,60 @@ import {
   getOutfitsPorContexto,
   getSugerenciasFallback,
 } from '../data/recomendacionesEstilo'
-import { addClosetPrenda, addInspiracion } from '../utils/storageCloset'
+import { addClosetPrenda, addInspiracion, setProbadorPreview } from '../utils/storageCloset'
+
+const CATEGORIA_MAP = [
+  { categoria: 'superior', keys: ['blusa', 'camisa', 'top', 'playera', 'polo', 'sueter', 'sweater', 'jersey', 'hoodie', 'crop', 'body'] },
+  { categoria: 'inferior', keys: ['pantalon', 'jean', 'falda', 'short', 'bermuda'] },
+  { categoria: 'vestido/falda', keys: ['vestido', 'falda'] },
+  { categoria: 'calzado', keys: ['sandalia', 'tenis', 'sneaker', 'zapato', 'botin', 'bota', 'stiletto', 'mocasin', 'oxford', 'derby'] },
+  { categoria: 'abrigo/blazer', keys: ['blazer', 'abrigo', 'chaqueta', 'jacket', 'trench'] },
+  { categoria: 'accesorio', keys: ['bolsa', 'collar', 'aretes', 'reloj', 'cinturon', 'corbata', 'lentes', 'gorra', 'clutch', 'backpack'] },
+]
+
+function guessCategoria(prendaNombre) {
+  const base = prendaNombre
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+  const hit = CATEGORIA_MAP.find((item) => item.keys.some((key) => base.includes(key)))
+  return hit?.categoria || 'superior'
+}
+
+function buildOutfitPreviewPayload(outfit, genero) {
+  const layers = []
+  outfit.prendas.forEach((nombre, idx) => {
+    const categoria = guessCategoria(nombre)
+    layers.push({
+      id: `outfit-${outfit.id}-${idx}`,
+      nombre,
+      categoria,
+      color: '#9aa1b0',
+      ocasion: outfit.ocasion,
+      origen: 'outfit-sugerido',
+    })
+  })
+
+  outfit.accesorios.forEach((nombre, idx) => {
+    layers.push({
+      id: `outfit-${outfit.id}-acc-${idx}`,
+      nombre,
+      categoria: 'accesorio',
+      color: '#b7b0c9',
+      ocasion: outfit.ocasion,
+      origen: 'outfit-sugerido',
+    })
+  })
+
+  return {
+    id: `preview-${outfit.id}`,
+    nombre: outfit.nombre,
+    genero,
+    ocasion: outfit.ocasion,
+    prendas: layers,
+    createdAt: new Date().toISOString(),
+  }
+}
 
 function GaleriaOutfits({ estacion, genero }) {
   const { ocasiones, estilos } = getOpcionesFiltros()
@@ -49,6 +102,12 @@ function GaleriaOutfits({ estacion, genero }) {
       })
     })
     setFeedback(`Prendas sugeridas de "${outfit.nombre}" agregadas al clóset local.`)
+  }
+
+  const handleEnviarAlProbador = (outfit) => {
+    const payload = buildOutfitPreviewPayload(outfit, genero)
+    setProbadorPreview(payload)
+    setFeedback(`"${outfit.nombre}" enviado al probador visual.`)
   }
 
   const handleInspiracion = (outfit) => {
@@ -170,11 +229,11 @@ function GaleriaOutfits({ estacion, genero }) {
                 </button>
                 <button
                   type="button"
-                  onClick={() => setFeedback(`Puedes ver "${outfit.nombre}" en el Probador Visual desde Suite Premium.`)}
+                  onClick={() => handleEnviarAlProbador(outfit)}
                   className="min-h-[44px] px-2 rounded-lg border border-white/15 bg-white/5 hover:bg-white/10 text-xs inline-flex items-center justify-center gap-1 text-center"
                 >
                   <Sparkles className="w-3.5 h-3.5" />
-                  Ver en probador
+                  Enviar prendas al probador
                 </button>
                 <button
                   type="button"
@@ -182,7 +241,7 @@ function GaleriaOutfits({ estacion, genero }) {
                   className="min-h-[44px] px-2 rounded-lg border border-white/15 bg-white/5 hover:bg-white/10 text-xs inline-flex items-center justify-center gap-1 sm:col-span-2 text-center"
                 >
                   <PlusSquare className="w-3.5 h-3.5" />
-                  Agregar prendas sugeridas
+                  Agregar al clóset
                 </button>
               </div>
             </div>

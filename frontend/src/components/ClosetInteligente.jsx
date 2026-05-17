@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import { motion } from 'framer-motion'
 import { Plus, Shirt, Save, CheckCircle2, Sparkles } from 'lucide-react'
-import { addClosetPrenda, addClosetOutfit, getClosetPrendas } from '../utils/storageCloset'
+import { addClosetPrenda, addClosetOutfit, getClosetPrendas, setProbadorPreview } from '../utils/storageCloset'
 import { getPrendasDemo } from '../data/prendasDemo'
 
 const CATEGORIAS_BASE = [
@@ -89,6 +89,28 @@ function ClosetInteligente({ genero, estacion = 'verano' }) {
     })
     setPrendas(next)
     setFeedback(`"${prenda.nombre}" agregada al clóset.`)
+  }
+
+  const handleProbarDemo = (prenda) => {
+    setProbadorPreview({
+      id: `demo-${prenda.id}`,
+      nombre: `Preview ${prenda.nombre}`,
+      genero,
+      ocasion: prenda.ocasion,
+      prendas: [
+        {
+          id: prenda.id,
+          nombre: prenda.nombre,
+          categoria: prenda.categoria,
+          color: prenda.hex,
+          ocasion: prenda.ocasion,
+          estilo: prenda.estilo,
+          origen: 'demo',
+        },
+      ],
+      createdAt: new Date().toISOString(),
+    })
+    setFeedback(`"${prenda.nombre}" enviada al probador visual.`)
   }
 
   return (
@@ -206,6 +228,13 @@ function ClosetInteligente({ genero, estacion = 'verano' }) {
                   className="mt-2 w-full min-h-[38px] rounded-lg border border-emerald-400/25 bg-emerald-500/10 hover:bg-emerald-500/20 text-xs"
                 >
                   Agregar al clóset
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleProbarDemo(item)}
+                  className="mt-2 w-full min-h-[38px] rounded-lg border border-violet-400/25 bg-violet-500/10 hover:bg-violet-500/20 text-xs"
+                >
+                  Probar en maniquí
                 </button>
               </div>
             ))}
