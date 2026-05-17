@@ -10,6 +10,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Scissors, Palette, Sparkles, Camera, X, Check, Download, RefreshCw, Lightbulb } from 'lucide-react'
 import Webcam from 'react-webcam'
 import { apiUrl } from '../config/api.js'
+import HairTryOnLab from './HairTryOnLab'
 
 // Datos locales de cabello por estación
 const CABELLO_POR_ESTACION = {
@@ -200,13 +201,14 @@ function GeneradorCabello({ imagen, estacion, genero }) {
   }
 
   return (
-    <div className="glass-card glass-card--elevated max-w-5xl mx-auto transition-shadow duration-300 hover:border-white/[0.16]">
+    <div className="glass-card glass-card--elevated ring-1 ring-white/[0.08] max-w-5xl mx-auto transition-shadow duration-300 hover:border-white/[0.16]">
       {/* Header */}
       <div className="flex items-center gap-3 mb-6">
         <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${datos.gradiente} flex items-center justify-center`}>
           <Scissors className="w-6 h-6 text-white" />
         </div>
         <div>
+          <p className="font-body text-[11px] uppercase tracking-[0.16em] text-white/45 mb-1">Hair Studio IA</p>
           <h3 className="font-display text-xl font-semibold">Recomendaciones de Cabello</h3>
           <p className="text-white/60 text-sm">Estilos y colores ideales para tu colorimetría</p>
         </div>
@@ -215,20 +217,36 @@ function GeneradorCabello({ imagen, estacion, genero }) {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Panel izquierdo */}
         <div>
-          {/* Estilos recomendados */}
           <div className="mb-6">
+            <div className="rounded-2xl border border-violet-400/20 bg-violet-500/10 p-4 mb-3">
+              <p className="font-body text-[11px] uppercase tracking-[0.16em] text-violet-200/80 mb-1">
+                Simulación visual en pruebas
+              </p>
+              <h4 className="font-display text-lg text-white/95">Prueba visual de color de cabello</h4>
+              <p className="text-sm text-white/70 mt-1">
+                Simulación en pruebas con segmentación visual. El resultado puede variar según iluminación, cabello y fondo.
+              </p>
+            </div>
+            <HairTryOnLab
+              image={imagenGenerada || imagenCapturada}
+              suggestedColors={datos.colores || []}
+            />
+          </div>
+
+          {/* Estilos recomendados */}
+          <div className="mb-6 p-4 rounded-2xl border border-white/[0.08] bg-white/[0.03] ring-1 ring-white/[0.04]">
             <h4 className="font-semibold mb-3 flex items-center gap-2 text-white/90">
               <Scissors className="w-4 h-4 text-violet-400" />
-              Estilos Recomendados
+              Recomendaciones editoriales de estilo
             </h4>
             <div className="grid grid-cols-2 gap-2">
               {datos.estilos.map((estilo) => (
                 <motion.button
                   key={estilo.id}
                   onClick={() => setEstiloSeleccionado(estiloSeleccionado?.id === estilo.id ? null : estilo)}
-                  className={`p-3 rounded-xl text-left transition-all ${estiloSeleccionado?.id === estilo.id
-                      ? 'bg-violet-500/30 border-2 border-violet-400 shadow-lg shadow-violet-500/20'
-                      : 'bg-white/5 border border-white/10 hover:bg-white/10 hover:border-white/20'
+                  className={`p-3 rounded-xl text-left transition-all ring-1 ${estiloSeleccionado?.id === estilo.id
+                      ? 'bg-violet-500/30 border-2 border-violet-400 shadow-lg shadow-violet-500/20 ring-violet-300/20'
+                      : 'bg-white/5 border border-white/10 hover:bg-white/10 hover:border-white/20 ring-white/[0.04]'
                     }`}
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
@@ -237,7 +255,7 @@ function GeneradorCabello({ imagen, estacion, genero }) {
                     <Scissors className="w-4 h-4 flex-shrink-0 text-violet-300" aria-hidden />
                     <p className="font-medium text-sm">{estilo.nombre}</p>
                   </div>
-                  <p className="text-white/50 text-xs leading-snug">{estilo.descripcion}</p>
+                  <p className="text-white/55 text-xs leading-snug">{estilo.descripcion}</p>
                 </motion.button>
               ))}
             </div>
@@ -250,7 +268,7 @@ function GeneradorCabello({ imagen, estacion, genero }) {
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: 'auto' }}
                 exit={{ opacity: 0, height: 0 }}
-                className="mb-4 p-3 rounded-xl bg-violet-500/10 border border-violet-500/30"
+                className="mb-4 p-3 rounded-xl bg-violet-500/10 border border-violet-500/30 ring-1 ring-violet-300/10"
               >
                 <p className="text-violet-300 text-sm flex items-start gap-2">
                   <Lightbulb className="w-4 h-4 flex-shrink-0 mt-0.5" aria-hidden />
@@ -261,7 +279,7 @@ function GeneradorCabello({ imagen, estacion, genero }) {
           </AnimatePresence>
 
           {/* Colores recomendados */}
-          <div className="mb-6">
+          <div className="mb-6 p-4 rounded-2xl border border-white/[0.08] bg-white/[0.03] ring-1 ring-white/[0.04]">
             <h4 className="font-semibold mb-3 flex items-center gap-2 text-white/90">
               <Palette className="w-4 h-4 text-fuchsia-400" />
               Colores para tu Estación
@@ -271,7 +289,7 @@ function GeneradorCabello({ imagen, estacion, genero }) {
                 <motion.button
                   key={color.id}
                   onClick={() => setColorSeleccionado(colorSeleccionado?.id === color.id ? null : color)}
-                  className={`relative group flex flex-col items-center gap-1 ${colorSeleccionado?.id === color.id ? 'ring-2 ring-white ring-offset-2 ring-offset-[#1a1a2e] rounded-full' : ''
+                    className={`relative group flex flex-col items-center gap-1 ${colorSeleccionado?.id === color.id ? 'ring-2 ring-white ring-offset-2 ring-offset-[#1a1a2e] rounded-full' : ''
                     }`}
                   whileHover={{ scale: 1.15, y: -3 }}
                   whileTap={{ scale: 0.95 }}
@@ -281,7 +299,7 @@ function GeneradorCabello({ imagen, estacion, genero }) {
                     className="w-11 h-11 rounded-full shadow-lg border-2 border-white/20"
                     style={{ backgroundColor: color.hex }}
                   />
-                  <span className="text-[10px] text-white/50 max-w-[44px] text-center leading-tight opacity-0 group-hover:opacity-100 transition-opacity">
+                  <span className="text-[10px] text-white/55 max-w-[44px] text-center leading-tight opacity-0 group-hover:opacity-100 transition-opacity">
                     {color.nombre}
                   </span>
                 </motion.button>
@@ -300,17 +318,17 @@ function GeneradorCabello({ imagen, estacion, genero }) {
           </div>
 
           {/* Consejo general */}
-          <div className="p-4 rounded-xl bg-gradient-to-r from-violet-500/10 to-fuchsia-500/10 border border-violet-500/20">
-            <p className="text-white/70 text-sm leading-relaxed">
-              <span className="text-fuchsia-300 font-semibold">✦ Consejo experto: </span>
-              {datos.consejo_general}
+          <div className="p-4 rounded-xl bg-gradient-to-r from-violet-500/10 to-fuchsia-500/10 border border-violet-500/20 ring-1 ring-violet-300/10">
+            <p className="text-white/70 text-sm leading-relaxed flex items-start gap-2">
+              <Lightbulb className="w-4 h-4 text-fuchsia-300 mt-0.5 flex-shrink-0" aria-hidden />
+              <span><span className="text-fuchsia-300 font-semibold">Consejo experto: </span>{datos.consejo_general}</span>
             </p>
           </div>
         </div>
 
         {/* Panel derecho — Foto y generador */}
         <div>
-          <h4 className="font-semibold mb-3">Tu Foto / Previsualización</h4>
+          <h4 className="font-semibold mb-3 text-white/90">Tu Foto / Previsualización</h4>
 
           {/* Vista principal de imagen */}
           <div className="aspect-square rounded-2xl overflow-hidden bg-white/5 border border-white/10 relative mb-4">
@@ -460,6 +478,7 @@ function GeneradorCabello({ imagen, estacion, genero }) {
 
           {/* Botón generar con IA */}
           <motion.button
+            type="button"
             onClick={generarCabello}
             disabled={!estiloSeleccionado || !imagenCapturada || cargando}
             className={`w-full py-4 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all ${estiloSeleccionado && imagenCapturada && !cargando
@@ -499,6 +518,7 @@ function GeneradorCabello({ imagen, estacion, genero }) {
           </AnimatePresence>
         </div>
       </div>
+
     </div>
   )
 }

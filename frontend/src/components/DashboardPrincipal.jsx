@@ -50,10 +50,10 @@ function formatGeneroLabel(genero) {
 
 /** Anclas a secciones reales del flujo de resultados (sin routing). */
 const ANCHOR_ACCESO = {
-  guia: 'seccion-resultados-analisis',
-  closet: 'seccion-galeria-outfits',
-  probador: 'seccion-probador-cabello',
-  tienda: 'seccion-recomendaciones',
+  guia: 'suite-guia',
+  closet: 'suite-closet',
+  probador: 'suite-probador',
+  tienda: 'suite-tienda',
 }
 
 function scrollToId(id) {

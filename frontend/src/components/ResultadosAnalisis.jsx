@@ -5,7 +5,19 @@
  */
 
 import { motion } from 'framer-motion'
-import { Palette, Sun, Leaf, Snowflake, User, Scissors, TrendingUp, Sparkles, CircleDot, Ban, Lightbulb } from 'lucide-react'
+import {
+  Palette,
+  Sun,
+  Leaf,
+  Snowflake,
+  User,
+  Scissors,
+  TrendingUp,
+  Sparkles,
+  CircleDot,
+  Ban,
+  Lightbulb,
+} from 'lucide-react'
 
 // Paletas de colores locales por estación
 const PALETAS_LOCALES = {
@@ -43,7 +55,7 @@ const PALETAS_LOCALES = {
       'Los metales dorados y cobrizos son tus mejores aliados',
       'El bronce y el coral son colores que hacen resplandecer tu tono natural',
       'Minimiza el negro puro; prefiere el marrón cálido o el marino suave',
-    ]
+    ],
   },
   verano: {
     principales: [
@@ -79,7 +91,7 @@ const PALETAS_LOCALES = {
       'La plata es tu metal principal; evita el oro amarillo intenso',
       'El blanco marfil suave es mejor que el blanco puro brillante',
       'Los estampados delicados y acuarela complementan perfectamente tu paleta',
-    ]
+    ],
   },
   otono: {
     principales: [
@@ -115,7 +127,7 @@ const PALETAS_LOCALES = {
       'El oro antiguo y el cobre son tus metales — evita la plata fría',
       'Los estampados animal print en tonos cálidos son especialmente favorecedores',
       'Mezcla capas en distintas intensidades de colores terrosos para un look rico',
-    ]
+    ],
   },
   invierno: {
     principales: [
@@ -151,43 +163,160 @@ const PALETAS_LOCALES = {
       'La plata y el platino son tus metales — el oro puede apagarte',
       'Los cortes geométricos y estructurados complementan tu naturaleza de alto contraste',
       'Atrévete con los colores saturados — son perfectos para tu colorimetría',
-    ]
-  }
+    ],
+  },
 }
 
 const ESTILOS_ESTACION = {
   primavera: {
     gradiente: 'from-amber-400 via-orange-400 to-pink-400',
     fondo: 'from-amber-500/20 to-orange-500/20',
-    borde: 'border-amber-400',
+    borde: 'border-amber-400/60',
+    ring: 'ring-amber-400/25',
     icono: Sun,
     color: '#FF7F50',
   },
   verano: {
     gradiente: 'from-pink-300 via-purple-400 to-blue-400',
     fondo: 'from-purple-500/20 to-pink-500/20',
-    borde: 'border-purple-400',
+    borde: 'border-purple-400/60',
+    ring: 'ring-purple-400/25',
     icono: Palette,
     color: '#9C27B0',
   },
   otono: {
     gradiente: 'from-orange-600 via-red-500 to-amber-600',
     fondo: 'from-orange-500/20 to-red-500/20',
-    borde: 'border-orange-400',
+    borde: 'border-orange-400/60',
+    ring: 'ring-orange-400/25',
     icono: Leaf,
     color: '#E65100',
   },
   invierno: {
     gradiente: 'from-blue-500 via-indigo-600 to-purple-600',
     fondo: 'from-blue-500/20 to-indigo-500/20',
-    borde: 'border-blue-400',
+    borde: 'border-blue-400/60',
+    ring: 'ring-blue-400/25',
     icono: Snowflake,
     color: '#1565C0',
-  }
+  },
+}
+
+/** Subcomponentes locales: solo presentación; no alteran datos ni contratos del padre. */
+function SectionHeader({ kicker, title, subtitle, icon: Icon }) {
+  return (
+    <header className="text-center mb-8 md:mb-10 max-w-2xl mx-auto">
+      {Icon && (
+        <span className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-white/[0.06] border border-white/10 mb-4 text-white/70 shadow-[0_8px_24px_rgba(0,0,0,0.25)]">
+          <Icon className="w-5 h-5" aria-hidden />
+        </span>
+      )}
+      {kicker && (
+        <p className="font-body text-[11px] sm:text-xs uppercase tracking-[0.22em] text-white/45 mb-2">{kicker}</p>
+      )}
+      <h2 className="section-title mb-0">{title}</h2>
+      {subtitle && <p className="font-body text-white/58 text-sm sm:text-base mt-3 leading-relaxed">{subtitle}</p>}
+    </header>
+  )
+}
+
+function DetectedColorCard({ icon: Icon, label, hex, nombre }) {
+  return (
+    <div className="glass-card glass-card--elevated ring-1 ring-white/[0.08] flex gap-4 sm:gap-5 items-center min-h-[5.5rem]">
+      <div
+        className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl shadow-lg border border-white/20 flex-shrink-0 palette-swatch-pro"
+        style={{ backgroundColor: hex }}
+      />
+      <div className="min-w-0 flex-1 text-left">
+        <div className="flex items-center gap-2 mb-1">
+          <Icon className="w-4 h-4 text-white/45 shrink-0" aria-hidden />
+          <span className="font-body text-[11px] uppercase tracking-[0.14em] text-white/45">{label}</span>
+        </div>
+        <p className="font-mono text-[11px] sm:text-xs text-white/50" translate="no">
+          {hex}
+        </p>
+        <p className="font-display text-base sm:text-lg text-white/95 mt-0.5 truncate">{nombre}</p>
+      </div>
+    </div>
+  )
+}
+
+function MetricCard({ label, value, caption, accent, children }) {
+  return (
+    <div
+      className={`glass-card glass-card--elevated ring-1 ring-white/[0.08] text-center flex flex-col items-center justify-center min-h-[10rem] sm:min-h-[11rem] ${accent}`}
+    >
+      <div className="mb-4 flex justify-center">{children}</div>
+      <p className="font-body text-[11px] uppercase tracking-[0.16em] text-white/45 mb-1">{label}</p>
+      <p className="font-display text-xl sm:text-2xl capitalize text-white/95">{value}</p>
+      {caption && <p className="font-body text-xs text-white/48 mt-2 max-w-[14rem] mx-auto leading-snug">{caption}</p>}
+    </div>
+  )
+}
+
+function SubtonoOrb({ subtonoLabel = 'neutro' }) {
+  const subtonoColor =
+    subtonoLabel === 'cálido' || subtonoLabel === 'warm'
+      ? 'from-amber-400 to-orange-500'
+      : subtonoLabel === 'frío' || subtonoLabel === 'cool'
+        ? 'from-sky-400 to-violet-500'
+        : 'from-zinc-400 to-zinc-600'
+
+  return (
+    <div
+      className={`w-14 h-14 rounded-full bg-gradient-to-br ${subtonoColor} shadow-[0_12px_32px_rgba(0,0,0,0.35)] ring-2 ring-white/10`}
+      aria-hidden
+    />
+  )
+}
+
+function ContrasteOrb({ nivel }) {
+  const n = nivel || 'medio'
+  const isAlto = n === 'alto'
+  const isBajo = n === 'bajo'
+
+  return (
+    <div
+      className="w-14 h-14 rounded-full flex items-center justify-center shadow-[0_12px_32px_rgba(0,0,0,0.35)] ring-2 ring-white/10 overflow-hidden"
+      aria-hidden
+      style={{
+        background: isAlto
+          ? 'linear-gradient(135deg, #0a0a0a 0%, #f5f5f5 100%)'
+          : isBajo
+            ? 'linear-gradient(135deg, #d4d4d8 0%, #a1a1aa 100%)'
+            : 'linear-gradient(135deg, #71717a 0%, #3f3f46 100%)',
+      }}
+    >
+      <div
+        className={`w-2.5 h-2.5 rounded-full ${isAlto ? 'bg-white shadow-[0_0_12px_rgba(255,255,255,0.9)]' : 'bg-gray-400'}`}
+      />
+    </div>
+  )
+}
+
+function PaletteSection({
+  title,
+  icon: Icon,
+  accentClass = 'text-white/90',
+  borderMuted,
+  children,
+}) {
+  return (
+    <div
+      className={`glass-card glass-card--elevated ring-1 ring-white/[0.08] ${borderMuted || ''}`}
+    >
+      <div className="flex items-center gap-2.5 mb-5 pb-4 border-b border-white/[0.08]">
+        <span className={`inline-flex p-2 rounded-lg bg-white/[0.06] border border-white/10 ${accentClass}`}>
+          <Icon className="w-4 h-4" aria-hidden />
+        </span>
+        <h4 className="font-display text-lg sm:text-xl font-semibold tracking-tight">{title}</h4>
+      </div>
+      {children}
+    </div>
+  )
 }
 
 function ResultadosAnalisis({ resultados, imagen }) {
-  // Map actual API response structure
   const estacion = resultados.estacion
   const colores = resultados.colores || {}
   const features = resultados.features || {}
@@ -200,97 +329,111 @@ function ResultadosAnalisis({ resultados, imagen }) {
     ? Math.round(estacion.confianza * (estacion.confianza <= 1 ? 100 : 1))
     : 0
 
-  // Subtono display
   const subtonoLabel = features.subtono || 'neutro'
-  const subtonoColor = subtonoLabel === 'cálido' || subtonoLabel === 'warm'
-    ? 'from-amber-400 to-orange-500'
-    : subtonoLabel === 'frío' || subtonoLabel === 'cool'
-      ? 'from-blue-400 to-purple-500'
-      : 'from-gray-400 to-gray-500'
+  const contrasteLabel = features.contraste || 'medio'
+
+  const subtonoCaption =
+    subtonoLabel === 'cálido' || subtonoLabel === 'warm'
+      ? 'Base dorada o melocotón que armoniza con tu estación.'
+      : subtonoLabel === 'frío' || subtonoLabel === 'cool'
+        ? 'Subtono rosado o azulado que equilibra con tu paleta.'
+        : 'Equilibrio entre tonos cálidos y fríos en tu piel.'
+
+  const contrasteCaption =
+    contrasteLabel === 'alto'
+      ? 'Rostro y cabello con diferencia marcada; los contrastes puros te favorecen.'
+      : contrasteLabel === 'bajo'
+        ? 'Transiciones suaves; los tonos empolvados y difuminados armonizan mejor.'
+        : 'Variación equilibrada entre rasgos; versatilidad en tonos medios.'
 
   const containerVariants = {
     hidden: { opacity: 0 },
-    visible: { opacity: 1, transition: { staggerChildren: 0.1 } }
+    visible: { opacity: 1, transition: { staggerChildren: 0.08 } },
   }
   const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0 }
+    hidden: { opacity: 0, y: 16 },
+    visible: { opacity: 1, y: 0 },
   }
 
   return (
-    <div className="section-container py-8">
+    <div className="section-container py-8 md:py-10">
       <motion.div variants={containerVariants} initial="hidden" animate="visible">
-        {/* Título */}
-        <motion.div variants={itemVariants} className="text-center mb-12">
-          <h2 className="section-title">Tu Análisis de Colorimetría</h2>
-          <p className="text-white/60">Descubre los colores que resaltan tu belleza natural</p>
+        <motion.div variants={itemVariants}>
+          <SectionHeader
+            kicker="Diagnóstico"
+            title="Tu análisis de colorimetría"
+            subtitle="Descubre los colores que resaltan tu belleza natural"
+          />
         </motion.div>
 
         {/* Tarjeta principal de estación */}
         <motion.div
           variants={itemVariants}
-          className={`glass-card bg-gradient-to-br ${estiloE.fondo} border-2 ${estiloE.borde} max-w-4xl mx-auto mb-10`}
+          className={`glass-card glass-card--elevated max-w-4xl mx-auto mb-10 md:mb-12 bg-gradient-to-br ${estiloE.fondo} border ${estiloE.borde} ring-1 ${estiloE.ring}`}
         >
-          <div className="flex flex-col lg:flex-row items-center gap-8">
-            {/* Imagen del usuario */}
+          <div className="flex flex-col lg:flex-row items-stretch gap-8 lg:gap-10">
             {imagen && (
-              <div className="w-40 h-40 rounded-2xl overflow-hidden flex-shrink-0 border-4 border-white/20 shadow-xl">
-                <img
-                  src={typeof imagen === 'string' ? imagen : URL.createObjectURL(imagen)}
-                  alt="Tu foto"
-                  className="w-full h-full object-cover"
-                />
+              <div className="flex justify-center lg:justify-start shrink-0">
+                <div className="relative w-36 h-36 sm:w-40 sm:h-40 rounded-2xl overflow-hidden border border-white/20 shadow-[0_20px_50px_rgba(0,0,0,0.4)] ring-1 ring-white/10">
+                  <img
+                    src={typeof imagen === 'string' ? imagen : URL.createObjectURL(imagen)}
+                    alt="Tu foto"
+                    className="w-full h-full object-cover"
+                  />
+                </div>
               </div>
             )}
 
-            <div className="flex-1 text-center lg:text-left">
-              <div className="flex items-center justify-center lg:justify-start gap-3 mb-4">
+            <div className="flex-1 min-w-0 text-center lg:text-left">
+              <div className="flex flex-col sm:flex-row items-center lg:items-start gap-4 lg:gap-5 mb-5">
                 <motion.div
-                  className={`w-14 h-14 rounded-xl bg-gradient-to-br ${estiloE.gradiente} flex items-center justify-center shadow-lg`}
-                  animate={{ rotate: [0, 8, -8, 0] }}
-                  transition={{ duration: 3, repeat: Infinity }}
+                  className={`w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-br ${estiloE.gradiente} flex items-center justify-center shadow-lg ring-1 ring-white/20`}
+                  whileHover={{ scale: 1.04 }}
+                  transition={{ type: 'spring', stiffness: 400, damping: 28 }}
                 >
-                  <IconoEstacion className="w-8 h-8 text-white" />
+                  <IconoEstacion className="w-8 h-8 text-white drop-shadow-md" />
                 </motion.div>
                 <div>
-                  <p className="text-white/60 text-sm">Tu estación de color es</p>
-                  <h3 className="font-display text-2xl sm:text-3xl font-bold">
+                  <p className="font-body text-[11px] sm:text-xs uppercase tracking-[0.2em] text-white/50 mb-1">
+                    Estación cromática
+                  </p>
+                  <h3 className="font-display text-2xl sm:text-3xl font-semibold text-white/95 tracking-tight">
                     {estacion?.nombre || 'Verano'}
                   </h3>
                 </div>
               </div>
 
-              <p className="text-white/80 mb-4 leading-relaxed">{estacion?.descripcion}</p>
+              <p className="font-body text-white/72 text-sm sm:text-[15px] leading-relaxed mb-6 max-w-prose mx-auto lg:mx-0">
+                {estacion?.descripcion}
+              </p>
 
-              {/* Confianza animada */}
-              <div className="mb-4">
-                <div className="flex items-center gap-2 mb-1">
-                  <TrendingUp className="w-4 h-4 text-green-400" />
-                  <span className="text-sm text-white/70">Confianza del análisis</span>
-                  <strong className="text-white ml-auto">{confianzaPct}%</strong>
+              <div className="mb-6">
+                <div className="flex items-center gap-2 mb-2">
+                  <TrendingUp className="w-4 h-4 text-emerald-400/90 shrink-0" aria-hidden />
+                  <span className="font-body text-xs sm:text-sm text-white/60">Confianza del análisis</span>
+                  <strong className="font-display text-white ml-auto tabular-nums">{confianzaPct}%</strong>
                 </div>
-                <div className="h-2 bg-white/10 rounded-full overflow-hidden">
+                <div className="h-1.5 bg-white/[0.08] rounded-full overflow-hidden ring-1 ring-white/[0.06]">
                   <motion.div
                     className={`h-full bg-gradient-to-r ${estiloE.gradiente}`}
                     initial={{ width: 0 }}
                     animate={{ width: `${confianzaPct}%` }}
-                    transition={{ duration: 1, ease: 'easeOut', delay: 0.5 }}
+                    transition={{ duration: 1, ease: [0.22, 1, 0.36, 1], delay: 0.35 }}
                   />
                 </div>
               </div>
 
-              {/* Características */}
               {estacion?.caracteristicas && (
-                <ul className="flex flex-wrap gap-2">
+                <ul className="flex flex-wrap gap-2 justify-center lg:justify-start">
                   {estacion.caracteristicas.map((c, i) => (
                     <motion.li
                       key={i}
-                      initial={{ opacity: 0, scale: 0.8 }}
+                      initial={{ opacity: 0, scale: 0.96 }}
                       animate={{ opacity: 1, scale: 1 }}
-                      transition={{ delay: 0.4 + i * 0.1 }}
-                      className="flex items-center gap-1.5 text-white/70 text-xs bg-white/10 px-2 py-1 rounded-full"
+                      transition={{ delay: 0.35 + i * 0.1 }}
+                      className="font-body inline-flex items-center gap-2 text-white/80 text-xs sm:text-[13px] bg-white/[0.07] border border-white/[0.1] px-3 py-1.5 rounded-full"
                     >
-                      <div className={`w-1.5 h-1.5 rounded-full bg-gradient-to-r ${estiloE.gradiente}`} />
+                      <span className={`w-1.5 h-1.5 rounded-full bg-gradient-to-r ${estiloE.gradiente}`} aria-hidden />
                       {c}
                     </motion.li>
                   ))}
@@ -301,178 +444,163 @@ function ResultadosAnalisis({ resultados, imagen }) {
         </motion.div>
 
         {/* Colores detectados */}
-        <motion.div variants={itemVariants} className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto mb-10">
-          {/* Color de piel */}
-          {colores.piel && (
-            <div className="glass-card flex items-center gap-4">
-              <div
-                className="w-16 h-16 rounded-2xl shadow-lg border-2 border-white/20 flex-shrink-0"
-                style={{ backgroundColor: colores.piel.hex }}
+        <motion.div variants={itemVariants} className="max-w-4xl mx-auto mb-10 md:mb-12">
+          <p className="font-body text-[11px] uppercase tracking-[0.2em] text-white/45 text-center mb-4">Muestras detectadas</p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-5">
+            {colores.piel && (
+              <DetectedColorCard
+                icon={User}
+                label="Tono de piel"
+                hex={colores.piel.hex}
+                nombre={colores.piel.nombre}
               />
-              <div>
-                <div className="flex items-center gap-2 mb-1">
-                  <User className="w-4 h-4 text-white/50" />
-                  <h4 className="font-semibold text-sm">Tono de Piel</h4>
-                </div>
-                <p className="text-white/60 text-xs font-mono">{colores.piel.hex}</p>
-                <p className="text-white/80 text-sm mt-1">{colores.piel.nombre}</p>
-              </div>
-            </div>
-          )}
-
-          {/* Color de cabello */}
-          {colores.cabello && (
-            <div className="glass-card flex items-center gap-4">
-              <div
-                className="w-16 h-16 rounded-2xl shadow-lg border-2 border-white/20 flex-shrink-0"
-                style={{ backgroundColor: colores.cabello.hex }}
+            )}
+            {colores.cabello && (
+              <DetectedColorCard
+                icon={Scissors}
+                label="Color de cabello"
+                hex={colores.cabello.hex}
+                nombre={colores.cabello.nombre}
               />
-              <div>
-                <div className="flex items-center gap-2 mb-1">
-                  <Scissors className="w-4 h-4 text-white/50" />
-                  <h4 className="font-semibold text-sm">Color de Cabello</h4>
-                </div>
-                <p className="text-white/60 text-xs font-mono">{colores.cabello.hex}</p>
-                <p className="text-white/80 text-sm mt-1">{colores.cabello.nombre}</p>
-              </div>
-            </div>
-          )}
+            )}
+          </div>
         </motion.div>
 
-        {/* Info adicional: subtono + contraste */}
-        <motion.div variants={itemVariants} className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto mb-10">
-          <div className="glass-card text-center">
-            <div className={`w-12 h-12 rounded-full mx-auto mb-3 bg-gradient-to-br ${subtonoColor}`} />
-            <h4 className="font-semibold mb-1">Subtono de Piel</h4>
-            <p className="text-lg capitalize">{subtonoLabel}</p>
-          </div>
-          <div className="glass-card text-center">
-            <div className={`w-12 h-12 rounded-full mx-auto mb-3 flex items-center justify-center ${features.contraste === 'alto'
-                ? 'bg-gradient-to-br from-black to-white'
-                : features.contraste === 'bajo'
-                  ? 'bg-gradient-to-br from-gray-300 to-gray-400'
-                  : 'bg-gradient-to-br from-gray-400 to-gray-600'
-              }`}>
-              <div className={`w-6 h-6 rounded-full ${features.contraste === 'alto' ? 'bg-white' : 'bg-gray-400'}`} />
-            </div>
-            <h4 className="font-semibold mb-1">Nivel de Contraste</h4>
-            <p className="text-lg capitalize">{features.contraste || 'medio'}</p>
-          </div>
+        {/* Subtono + contraste */}
+        <motion.div variants={itemVariants} className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-5 max-w-4xl mx-auto mb-10 md:mb-12">
+          <MetricCard
+            label="Subtono de piel"
+            value={subtonoLabel}
+            caption={subtonoCaption}
+            accent=""
+          >
+            <SubtonoOrb subtonoLabel={subtonoLabel} />
+          </MetricCard>
+          <MetricCard
+            label="Nivel de contraste"
+            value={contrasteLabel}
+            caption={contrasteCaption}
+            accent=""
+          >
+            <ContrasteOrb nivel={features.contraste} />
+          </MetricCard>
         </motion.div>
 
         {/* Paleta de colores */}
-        <motion.div variants={itemVariants} className="max-w-4xl mx-auto">
-          <h3 className="section-title text-center mb-8">
-            <Palette className="inline-block w-8 h-8 mr-2" />
-            Tu Paleta de Colores
-          </h3>
+        <motion.div variants={itemVariants} className="max-w-4xl mx-auto space-y-6 md:space-y-8">
+          <div className="text-center mb-2">
+            <p className="font-body text-[11px] uppercase tracking-[0.22em] text-white/45 mb-2">Guía de estación</p>
+            <h3 className="section-title text-2xl sm:text-3xl md:text-4xl mb-0 inline-flex flex-wrap items-center justify-center gap-2">
+              <Palette className="inline w-7 h-7 sm:w-8 sm:h-8 opacity-90 shrink-0" aria-hidden />
+              <span>Tu paleta de colores</span>
+            </h3>
+          </div>
 
-          <div className="glass-card mb-6">
-            <h4 className="font-semibold mb-4 flex items-center gap-2">
-              <Sparkles className="w-4 h-4" aria-hidden />
-              Colores que te favorecen
-            </h4>
-            <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-2 sm:gap-3">
+          <PaletteSection title="Colores que te favorecen" icon={Sparkles} accentClass="text-amber-100/90">
+            <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-2.5 sm:gap-3">
               {paleta.principales.map((color, i) => (
                 <motion.div
                   key={i}
                   className="group relative flex flex-col items-center gap-1"
-                  initial={{ opacity: 0, scale: 0.82, y: 14 }}
+                  initial={{ opacity: 0, scale: 0.85, y: 12 }}
                   animate={{ opacity: 1, scale: 1, y: 0 }}
                   transition={{
-                    delay: i * 0.05,
+                    delay: i * 0.04,
                     type: 'spring',
                     stiffness: 380,
-                    damping: 28
+                    damping: 28,
                   }}
-                  whileHover={{ scale: 1.1, y: -6 }}
+                  whileHover={{ scale: 1.06, y: -4 }}
                 >
                   <div
-                    className="palette-swatch-pro w-full aspect-square rounded-xl border-2 border-white/25 cursor-pointer"
+                    className="palette-swatch-pro w-full aspect-square rounded-xl border border-white/25 cursor-pointer"
                     style={{ backgroundColor: color.hex }}
                     title={color.nombre}
                   />
-                  <span className="text-[9px] text-white/50 text-center leading-tight opacity-0 group-hover:opacity-100 transition-opacity">
+                  <span className="text-[9px] sm:text-[10px] text-white/55 text-center leading-tight opacity-0 group-hover:opacity-100 transition-opacity">
                     {color.nombre}
                   </span>
                 </motion.div>
               ))}
             </div>
-          </div>
+          </PaletteSection>
 
-          <div className="glass-card mb-6">
-            <h4 className="font-semibold mb-4 flex items-center gap-2">
-              <CircleDot className="w-4 h-4" aria-hidden />
-              Neutros ideales
-            </h4>
-            <div className="flex gap-4">
+          <PaletteSection title="Neutros ideales" icon={CircleDot} accentClass="text-white/80">
+            <div className="flex flex-wrap gap-3 sm:gap-4 justify-center sm:justify-start">
               {paleta.neutros.map((color, i) => (
                 <motion.div
                   key={i}
-                  className="group relative flex flex-col items-center gap-1"
-                  initial={{ opacity: 0, scale: 0.85, y: 10 }}
+                  className="group relative flex flex-col items-center gap-1.5"
+                  initial={{ opacity: 0, scale: 0.88, y: 8 }}
                   animate={{ opacity: 1, scale: 1, y: 0 }}
                   transition={{
-                    delay: 0.28 + i * 0.055,
+                    delay: 0.2 + i * 0.05,
                     type: 'spring',
                     stiffness: 400,
-                    damping: 30
+                    damping: 30,
                   }}
-                  whileHover={{ scale: 1.08, y: -3 }}
+                  whileHover={{ scale: 1.06, y: -2 }}
                 >
                   <div
-                    className="palette-swatch-pro w-12 h-12 rounded-xl border-2 border-white/25 cursor-pointer"
+                    className="palette-swatch-pro w-12 h-12 sm:w-14 sm:h-14 rounded-xl border border-white/25 cursor-pointer"
                     style={{ backgroundColor: color.hex }}
                     title={color.nombre}
                   />
-                  <span className="text-[9px] text-white/50 opacity-0 group-hover:opacity-100 transition-opacity text-center">{color.nombre}</span>
+                  <span className="text-[9px] text-white/50 opacity-0 group-hover:opacity-100 transition-opacity text-center max-w-[4.5rem]">
+                    {color.nombre}
+                  </span>
                 </motion.div>
               ))}
             </div>
-          </div>
+          </PaletteSection>
 
-          <div className="glass-card mb-6 border-red-500/30">
-            <h4 className="font-semibold mb-4 text-red-300 flex items-center gap-2">
-              <Ban className="w-4 h-4" aria-hidden />
-              Colores a evitar
-            </h4>
-            <div className="flex gap-4">
+          <PaletteSection
+            title="Colores a evitar"
+            icon={Ban}
+            accentClass="text-red-200/90"
+            borderMuted="border-red-500/20 border"
+          >
+            <div className="flex flex-wrap gap-3 sm:gap-4 justify-center sm:justify-start">
               {paleta.evitar.map((color, i) => (
                 <motion.div
                   key={i}
                   className="relative"
-                  initial={{ opacity: 0, scale: 0.9 }}
+                  initial={{ opacity: 0, scale: 0.92 }}
                   animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: 0.48 + i * 0.055, ease: [0.22, 1, 0.36, 1] }}
+                  transition={{ delay: 0.35 + i * 0.05, ease: [0.22, 1, 0.36, 1] }}
                 >
                   <div
-                    className="palette-swatch-pro w-12 h-12 rounded-xl border-2 border-white/20 opacity-60"
+                    className="palette-swatch-pro w-12 h-12 sm:w-14 sm:h-14 rounded-xl border border-white/15 opacity-65"
                     style={{ backgroundColor: color.hex }}
                     title={color.nombre}
                   />
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="w-full h-0.5 bg-red-500 rotate-45" />
+                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                    <div className="w-[110%] h-px bg-red-500/80 rotate-45 shadow-sm" />
                   </div>
                 </motion.div>
               ))}
             </div>
-          </div>
+          </PaletteSection>
 
-          <div className="glass-card bg-gradient-to-r from-purple-500/10 to-pink-500/10">
-            <h4 className="font-semibold mb-4 flex items-center gap-2">
-              <Lightbulb className="w-4 h-4" aria-hidden />
-              Consejos para tu paleta
-            </h4>
-            <ul className="space-y-2">
+          <div className="glass-card glass-card--elevated ring-1 ring-white/[0.08] bg-gradient-to-br from-[color:var(--accent-end)]/15 via-transparent to-[color:var(--accent-start)]/10 border border-white/[0.08]">
+            <div className="flex items-center gap-2.5 mb-4">
+              <span className="inline-flex p-2 rounded-lg bg-white/[0.06] border border-white/10 text-amber-100/90">
+                <Lightbulb className="w-4 h-4" aria-hidden />
+              </span>
+              <h4 className="font-display text-lg sm:text-xl font-semibold">Consejos para tu paleta</h4>
+            </div>
+            <ul className="space-y-3">
               {paleta.consejos.map((c, i) => (
                 <motion.li
                   key={i}
-                  className="flex items-start gap-2 text-white/80 text-sm"
-                  initial={{ opacity: 0, x: -10 }}
+                  className="font-body flex items-start gap-3 text-white/78 text-sm sm:text-[15px] leading-relaxed"
+                  initial={{ opacity: 0, x: -8 }}
                   animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.6 + i * 0.1 }}
+                  transition={{ delay: 0.6 + i * 0.08 }}
                 >
-                  <span className="text-purple-400 mt-0.5 flex-shrink-0">✦</span>
+                  <span className="text-[color:var(--accent-start)] mt-1 flex-shrink-0 opacity-90" aria-hidden>
+                    ✦
+                  </span>
                   {c}
                 </motion.li>
               ))}

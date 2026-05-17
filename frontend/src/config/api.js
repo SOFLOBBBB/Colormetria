@@ -1,9 +1,11 @@
 /**
- * Configuración centralizada del backend (API).
+ * URL base del backend (único punto de verdad para fetch al API).
  *
- * - `VITE_API_URL` en Vercel/Netlify/CI define la URL en producción.
- * - En `vite dev` sin env: usa localhost.
- * - En `vite build` sin env: usa el dominio de producción por defecto.
+ * Resolución (Vite):
+ * 1) `import.meta.env.VITE_API_URL` si está definida (p. ej. .env.production, Vercel, Netlify).
+ * 2) Si no hay variable: en desarrollo (`vite`) → localhost; en build de producción → dominio API.
+ *
+ * No usar dominios Render antiguos; producción: https://api.xn--colormetra-s8a.com
  */
 
 /** @param {string | undefined} url */
@@ -12,20 +14,22 @@ function normalizeBaseUrl(url) {
   return String(url).replace(/\/+$/, '')
 }
 
+/** API pública en producción (fallback si no hay VITE_API_URL en el build). */
+export const PRODUCTION_API_BASE_URL = 'https://api.xn--colormetra-s8a.com'
+
 const DEFAULT_LOCAL = 'http://localhost:8000'
-const DEFAULT_PRODUCTION = 'https://api.xn--colormetra-s8a.com'
 
 const fromEnv = normalizeBaseUrl(import.meta.env.VITE_API_URL)
 
 export const API_BASE_URL =
-  fromEnv || (import.meta.env.DEV ? DEFAULT_LOCAL : DEFAULT_PRODUCTION)
+  fromEnv || (import.meta.env.DEV ? DEFAULT_LOCAL : PRODUCTION_API_BASE_URL)
 
 /** Timeout para POST /analizar (cold start puede tardar hasta ~2 min). */
 export const TIMEOUT_ANALIZAR_MS = 120000
 
 /**
- * Construye URL absoluta para un path del backend (ej. `/analizar`).
- * @param {string} path - path con o sin barra inicial
+ * URL absoluta del backend para un path (p. ej. apiUrl('/analizar')).
+ * @param {string} path - con o sin barra inicial
  */
 export function apiUrl(path) {
   const p = path.startsWith('/') ? path : `/${path}`
@@ -33,7 +37,7 @@ export function apiUrl(path) {
 }
 
 /**
- * True si el backend no es localhost (mostrar avisos de latencia/cold start).
+ * True si el backend no es localhost (avisos de latencia / cold start).
  */
 export function isRemoteBackend() {
   const u = API_BASE_URL.toLowerCase()

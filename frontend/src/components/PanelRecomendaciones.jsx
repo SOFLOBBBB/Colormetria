@@ -4,9 +4,20 @@
  * Usa datos locales — no depende de endpoints de backend adicionales
  */
 
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Sparkles, ChevronDown, ChevronUp, Gem, Palette, Heart, Eye, CircleDot, Lightbulb, Ban } from 'lucide-react'
+import {
+  Sparkles,
+  ChevronDown,
+  ChevronUp,
+  Gem,
+  Palette,
+  Heart,
+  Eye,
+  CircleDot,
+  Lightbulb,
+  Ban,
+} from 'lucide-react'
 
 // Recomendaciones locales por estación
 const RECOMENDACIONES_LOCALES = {
@@ -34,7 +45,7 @@ const RECOMENDACIONES_LOCALES = {
         'El bronzer en tonos durazno-dorado crea un look irresistible',
         'Un iluminador en tono champagne o dorado es perfecto para ti',
         'Evita los correctores con subtono rosado muy frío',
-      ]
+      ],
     },
     joyeria: {
       metal_ideal: 'Oro amarillo y cobre',
@@ -52,8 +63,8 @@ const RECOMENDACIONES_LOCALES = {
         'Las perlas en tono crema o dorado son especialmente elegantes para ti',
         'Prefiere la joyería delicada a las piezas muy voluminosas',
         'El cobre y el bronce añaden un toque artesanal muy favorecedor',
-      ]
-    }
+      ],
+    },
   },
   verano: {
     maquillaje: {
@@ -79,7 +90,7 @@ const RECOMENDACIONES_LOCALES = {
         'El iluminador en tono plateado o nacarado es perfecto para ti',
         'Evita el bronzer intenso naranja — usa uno con tono frío-grisáceo',
         'El delineador en navy o gris es mejor que el negro intenso para el día',
-      ]
+      ],
     },
     joyeria: {
       metal_ideal: 'Plata y platino',
@@ -97,8 +108,8 @@ const RECOMENDACIONES_LOCALES = {
         'Las perlas blancas o en tono rosado son especialmente favorecedoras',
         'Las piedras en tonos morados, azules suaves y rosas frías se integran naturalmente',
         'Evita el oro amarillo intenso; el oro blanco es una alternativa excelente',
-      ]
-    }
+      ],
+    },
   },
   otono: {
     maquillaje: {
@@ -124,7 +135,7 @@ const RECOMENDACIONES_LOCALES = {
         'El bronzer en tonos terrosos es absolutamente perfecto para ti',
         'Los iluminadores en tono cobre o bronce dorado son los más favorecedores',
         'Usa el delineador en marrón oscuro para un look natural y armónico',
-      ]
+      ],
     },
     joyeria: {
       metal_ideal: 'Oro antiguo y cobre',
@@ -142,8 +153,8 @@ const RECOMENDACIONES_LOCALES = {
         'Las piedras semipreciosas en tonos cálidos (ámbar, topacio, granate) son perfectas',
         'La joyería artesanal y étnica complementa muy bien la paleta otoñal',
         'Las piezas grandes y llamativas en tonos tierra son muy favorecedoras',
-      ]
-    }
+      ],
+    },
   },
   invierno: {
     maquillaje: {
@@ -169,7 +180,7 @@ const RECOMENDACIONES_LOCALES = {
         'El contorno en tonos grises-fríos esculpe sin calentar el rostro',
         'El iluminador en tono plateado o diamante es tu mejor aliado',
         'Usa el delineador negro en trazo cat-eye para un look ultra poderoso',
-      ]
+      ],
     },
     joyeria: {
       metal_ideal: 'Plata y platino',
@@ -187,234 +198,155 @@ const RECOMENDACIONES_LOCALES = {
         'Las piedras en tonos azul, negro, blanco y rojo frío son las más armónicas',
         'Las piezas geométricas y estructuradas complementan tu naturaleza de alto contraste',
         'Puedes usar piezas más grandes y dramáticas que cualquier otra estación',
-      ]
-    }
-  }
+      ],
+    },
+  },
 }
 
-function PanelRecomendaciones({ resultados, genero }) {
-  const [seccionExpandida, setSeccionExpandida] = useState('maquillaje')
+const SECCIONES_BASE = [
+  {
+    id: 'maquillaje',
+    nombre: 'Maquillaje',
+    subtitulo: 'Tonos ideales para tu colorimetría',
+    Icono: Palette,
+    gradiente: 'from-rose-400/90 via-violet-500/80 to-fuchsia-500/70',
+  },
+  {
+    id: 'joyeria',
+    nombre: 'Joyería y accesorios',
+    subtitulo: 'Metales y piedras para tu estación',
+    Icono: Gem,
+    gradiente: 'from-amber-400/85 via-amber-600/70 to-[#5c4a3d]/80',
+  },
+]
 
-  const estacionId = resultados?.estacion?.id || 'verano'
-  const rec = RECOMENDACIONES_LOCALES[estacionId] || RECOMENDACIONES_LOCALES.verano
-
-  const toggleSeccion = (s) => setSeccionExpandida(seccionExpandida === s ? null : s)
-
-  const SECCIONES = [
-    {
-      id: 'maquillaje',
-      nombre: 'Maquillaje',
-      subtitulo: 'Tonos ideales para tu colorimetría',
-      Icono: Palette,
-      gradiente: 'from-rose-500 to-pink-500',
-    },
-    {
-      id: 'joyeria',
-      nombre: 'Joyería y accesorios',
-      subtitulo: 'Metales y piedras para tu estación',
-      Icono: Gem,
-      gradiente: 'from-amber-500 to-yellow-500',
-    }
-  ]
-
+function RecommendationSwatchItem({ item, delay = 0 }) {
   return (
-    <div className="section-container py-8">
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-        <div className="text-center mb-12">
-          <h2 className="section-title">
-            <Sparkles className="inline-block w-8 h-8 mr-2" />
-            Recomendaciones de Belleza
-          </h2>
-          <p className="text-white/60">Colores y estilos que complementan tu colorimetría natural</p>
-        </div>
+    <motion.div
+      className="flex items-center gap-3 sm:gap-4 p-3 rounded-[var(--radius-lg)] bg-white/[0.04] border border-white/[0.08] hover:bg-white/[0.07] hover:border-white/[0.12] transition-colors"
+      initial={{ opacity: 0, x: -8 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ delay, duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+      whileHover={{ x: 2 }}
+    >
+      <div
+        className="w-9 h-9 sm:w-10 sm:h-10 rounded-full shadow-md border border-white/20 flex-shrink-0 ring-1 ring-black/10"
+        style={{ backgroundColor: item.color }}
+      />
+      <div className="min-w-0">
+        <p className="font-display text-sm sm:text-[15px] font-medium text-white/95 truncate">{item.nombre}</p>
+        <p className="font-body text-white/52 text-xs leading-snug mt-0.5">{item.desc}</p>
+      </div>
+    </motion.div>
+  )
+}
 
-        <div className="max-w-4xl mx-auto space-y-6">
-          {SECCIONES.map((sec) => (
-            <motion.div key={sec.id} className="glass-card glass-card--elevated" layout>
-              <button
-                type="button"
-                onClick={() => toggleSeccion(sec.id)}
-                className="w-full flex items-center justify-between p-3 min-h-[var(--min-touch,44px)] text-left"
-                aria-expanded={seccionExpandida === sec.id}
-              >
-                <div className="flex items-center gap-3">
-                  <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-br ${sec.gradiente} flex items-center justify-center shadow-lg flex-shrink-0`}>
-                    <sec.Icono className="w-5 h-5 sm:w-6 sm:h-6 text-white" aria-hidden />
-                  </div>
-                  <div className="text-left">
-                    <h3 className="font-display text-xl font-semibold">{sec.nombre}</h3>
-                    <p className="text-white/60 text-sm">{sec.subtitulo}</p>
-                  </div>
-                </div>
-                {seccionExpandida === sec.id
-                  ? <ChevronUp className="w-6 h-6 text-white/50" />
-                  : <ChevronDown className="w-6 h-6 text-white/50" />
-                }
-              </button>
-
-              <AnimatePresence>
-                {seccionExpandida === sec.id && (
-                  <motion.div
-                    initial={{ height: 0, opacity: 0 }}
-                    animate={{ height: 'auto', opacity: 1 }}
-                    exit={{ height: 0, opacity: 0 }}
-                    transition={{ duration: 0.3 }}
-                    className="overflow-hidden"
-                  >
-                    <div className="pt-6 border-t border-white/10 mt-4">
-                      {sec.id === 'maquillaje' && (
-                        <MaquillajePanel datos={rec.maquillaje} />
-                      )}
-                      {sec.id === 'joyeria' && (
-                        <JoeriaPanel datos={rec.joyeria} />
-                      )}
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </motion.div>
-          ))}
-        </div>
-      </motion.div>
+function RecommendationTipsBlock({ title, icon: Icon, tips, accent = 'from-[color:var(--accent-start)]/25 to-[color:var(--accent-end)]/15' }) {
+  return (
+    <div
+      className={`rounded-[var(--radius-lg)] p-4 sm:p-5 border border-white/[0.1] bg-gradient-to-br ${accent} ring-1 ring-white/[0.06]`}
+    >
+      <h4 className="font-display text-sm sm:text-base font-semibold mb-3 flex items-center gap-2 text-white/95">
+        {Icon && <Icon className="w-4 h-4 text-[color:var(--accent-start)] shrink-0" aria-hidden />}
+        {title}
+      </h4>
+      <ul className="space-y-2.5">
+        {tips.map((c, i) => (
+          <li key={i} className="font-body text-white/72 text-sm leading-relaxed flex items-start gap-2.5">
+            <span className="text-[color:var(--accent-start)] mt-1 flex-shrink-0 opacity-90" aria-hidden>
+              ✦
+            </span>
+            {c}
+          </li>
+        ))}
+      </ul>
     </div>
   )
 }
 
 function MaquillajePanel({ datos }) {
   return (
-    <div>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-        {/* Labios */}
+    <RecommendationPanel>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8 mb-8">
         <div>
-          <h4 className="font-semibold mb-4 flex items-center gap-2 text-rose-300">
-            <Heart className="w-4 h-4" aria-hidden /> Labios
+          <h4 className="font-body text-[11px] uppercase tracking-[0.18em] text-white/45 mb-4 flex items-center gap-2">
+            <Heart className="w-4 h-4 text-rose-300/90" aria-hidden /> Labios
           </h4>
-          <div className="space-y-3">
+          <div className="space-y-2.5">
             {datos.labios.map((item, i) => (
-              <motion.div
-                key={i}
-                className="flex items-center gap-3 p-2 rounded-xl bg-white/5 hover:bg-white/10 transition-colors"
-                initial={{ opacity: 0, x: -10 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: i * 0.08 }}
-                whileHover={{ x: 4 }}
-              >
-                <div className="w-8 h-8 rounded-full shadow-md border border-white/20 flex-shrink-0" style={{ backgroundColor: item.color }} />
-                <div>
-                  <p className="text-sm font-medium">{item.nombre}</p>
-                  <p className="text-white/50 text-xs">{item.desc}</p>
-                </div>
-              </motion.div>
+              <RecommendationSwatchItem key={i} item={item} delay={i * 0.06} />
             ))}
           </div>
         </div>
-
-        {/* Ojos */}
         <div>
-          <h4 className="font-semibold mb-4 flex items-center gap-2 text-purple-300">
-            <Eye className="w-4 h-4" aria-hidden /> Sombras
+          <h4 className="font-body text-[11px] uppercase tracking-[0.18em] text-white/45 mb-4 flex items-center gap-2">
+            <Eye className="w-4 h-4 text-violet-300/90" aria-hidden /> Sombras
           </h4>
-          <div className="space-y-3">
+          <div className="space-y-2.5">
             {datos.ojos.map((item, i) => (
-              <motion.div
-                key={i}
-                className="flex items-center gap-3 p-2 rounded-xl bg-white/5 hover:bg-white/10 transition-colors"
-                initial={{ opacity: 0, x: -10 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: i * 0.08 }}
-                whileHover={{ x: 4 }}
-              >
-                <div className="w-8 h-8 rounded-full shadow-md border border-white/20 flex-shrink-0" style={{ backgroundColor: item.color }} />
-                <div>
-                  <p className="text-sm font-medium">{item.nombre}</p>
-                  <p className="text-white/50 text-xs">{item.desc}</p>
-                </div>
-              </motion.div>
+              <RecommendationSwatchItem key={i} item={item} delay={i * 0.06} />
             ))}
           </div>
         </div>
-
-        {/* Mejillas */}
         <div>
-          <h4 className="font-semibold mb-4 flex items-center gap-2 text-pink-300">
-            <CircleDot className="w-4 h-4" aria-hidden /> Mejillas
+          <h4 className="font-body text-[11px] uppercase tracking-[0.18em] text-white/45 mb-4 flex items-center gap-2">
+            <CircleDot className="w-4 h-4 text-pink-300/90" aria-hidden /> Mejillas
           </h4>
-          <div className="space-y-3">
+          <div className="space-y-2.5">
             {datos.mejillas.map((item, i) => (
-              <motion.div
-                key={i}
-                className="flex items-center gap-3 p-2 rounded-xl bg-white/5 hover:bg-white/10 transition-colors"
-                initial={{ opacity: 0, x: -10 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: i * 0.08 }}
-                whileHover={{ x: 4 }}
-              >
-                <div className="w-8 h-8 rounded-full shadow-md border border-white/20 flex-shrink-0" style={{ backgroundColor: item.color }} />
-                <div>
-                  <p className="text-sm font-medium">{item.nombre}</p>
-                  <p className="text-white/50 text-xs">{item.desc}</p>
-                </div>
-              </motion.div>
+              <RecommendationSwatchItem key={i} item={item} delay={i * 0.06} />
             ))}
           </div>
         </div>
       </div>
-
-      {/* Consejos */}
-      <div className="p-4 rounded-xl bg-gradient-to-r from-rose-500/10 to-pink-500/10 border border-rose-500/20">
-        <h4 className="font-semibold mb-3 text-sm flex items-center gap-2">
-          <Lightbulb className="w-4 h-4" aria-hidden /> Consejos profesionales
-        </h4>
-        <ul className="space-y-1.5">
-          {datos.consejos.map((c, i) => (
-            <li key={i} className="text-white/70 text-sm flex items-start gap-2">
-              <span className="text-rose-400 mt-0.5 flex-shrink-0">✦</span>
-              {c}
-            </li>
-          ))}
-        </ul>
-      </div>
-    </div>
+      <RecommendationTipsBlock
+        title="Consejos profesionales"
+        icon={Lightbulb}
+        tips={datos.consejos}
+        accent="from-rose-500/15 via-transparent to-violet-500/10"
+      />
+    </RecommendationPanel>
   )
 }
 
-function JoeriaPanel({ datos }) {
+function JoyeriaPanel({ datos }) {
   return (
-    <div>
-      {/* Metal ideal */}
-      <div className="flex gap-4 mb-6">
-        <div className="flex-1 p-4 rounded-xl bg-green-500/10 border border-green-500/30">
-          <h4 className="font-semibold text-green-300 mb-2 flex items-center gap-2">
+    <RecommendationPanel>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
+        <div className="rounded-[var(--radius-lg)] p-4 sm:p-5 border border-emerald-500/25 bg-emerald-500/[0.07] ring-1 ring-white/[0.06]">
+          <h4 className="font-body text-[11px] uppercase tracking-[0.18em] text-emerald-200/90 mb-3 flex items-center gap-2">
             <Sparkles className="w-4 h-4" aria-hidden /> Metal ideal
           </h4>
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full border-2 border-white/20 shadow-md" style={{ backgroundColor: datos.metal_hex }} />
-            <p className="text-white/80 font-medium">{datos.metal_ideal}</p>
+            <div
+              className="w-11 h-11 rounded-full border-2 border-white/25 shadow-md ring-1 ring-black/15 flex-shrink-0"
+              style={{ backgroundColor: datos.metal_hex }}
+            />
+            <p className="font-body text-white/88 text-sm sm:text-[15px] leading-snug">{datos.metal_ideal}</p>
           </div>
         </div>
-        <div className="flex-1 p-4 rounded-xl bg-red-500/10 border border-red-500/30">
-          <h4 className="font-semibold text-red-300 mb-2 flex items-center gap-2">
+        <div className="rounded-[var(--radius-lg)] p-4 sm:p-5 border border-red-500/30 bg-red-500/[0.07] ring-1 ring-white/[0.06]">
+          <h4 className="font-body text-[11px] uppercase tracking-[0.18em] text-red-200/90 mb-3 flex items-center gap-2">
             <Ban className="w-4 h-4" aria-hidden /> Evitar
           </h4>
-          <p className="text-white/60 text-sm">{datos.metal_evitar}</p>
+          <p className="font-body text-white/65 text-sm leading-relaxed">{datos.metal_evitar}</p>
         </div>
       </div>
 
-      {/* Piedras */}
-      <div className="mb-6 p-4 rounded-xl bg-purple-500/10 border border-purple-500/30">
-        <h4 className="font-semibold text-purple-300 mb-3 flex items-center gap-2">
-          <Gem className="w-4 h-4" />
-          Piedras Recomendadas
+      <div className="mb-8 rounded-[var(--radius-lg)] p-4 sm:p-5 border border-violet-500/25 bg-violet-500/[0.06] ring-1 ring-white/[0.06]">
+        <h4 className="font-body text-[11px] uppercase tracking-[0.18em] text-violet-200/90 mb-4 flex items-center gap-2">
+          <Gem className="w-4 h-4" aria-hidden />
+          Piedras recomendadas
         </h4>
         <div className="flex flex-wrap gap-2">
           {datos.piedrasclave.map((p, i) => (
             <motion.span
               key={i}
-              className="px-3 py-1 rounded-full bg-white/10 text-sm"
-              initial={{ opacity: 0, scale: 0.8 }}
+              className="font-body px-3 py-1.5 rounded-full bg-white/[0.06] border border-white/[0.1] text-xs sm:text-sm text-white/85"
+              initial={{ opacity: 0, scale: 0.96 }}
               animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: i * 0.08 }}
-              whileHover={{ scale: 1.05 }}
+              transition={{ delay: i * 0.05 }}
+              whileHover={{ scale: 1.03 }}
             >
               {p}
             </motion.span>
@@ -422,38 +354,138 @@ function JoeriaPanel({ datos }) {
         </div>
       </div>
 
-      {/* Estilos de joyería */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
         {datos.estilos.map((estilo, i) => (
           <motion.div
             key={i}
-            className="p-4 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors"
+            className="p-4 sm:p-5 rounded-[var(--radius-lg)] bg-white/[0.04] border border-white/[0.1] hover:bg-white/[0.06] transition-colors ring-1 ring-white/[0.04]"
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: i * 0.1 }}
+            transition={{ delay: i * 0.08 }}
             whileHover={{ y: -2 }}
           >
-            <h5 className="font-medium mb-1">{estilo.nombre}</h5>
-            <p className="text-white/60 text-sm mb-2">{estilo.desc}</p>
-            <p className="text-amber-300 text-xs">✓ {estilo.beneficio}</p>
+            <h5 className="font-display text-[15px] sm:text-base font-semibold mb-1.5">{estilo.nombre}</h5>
+            <p className="font-body text-white/58 text-sm mb-3 leading-relaxed">{estilo.desc}</p>
+            <p className="font-body text-[11px] sm:text-xs text-[color:var(--accent-start)]/95">✓ {estilo.beneficio}</p>
           </motion.div>
         ))}
       </div>
 
-      {/* Consejos */}
-      <div className="p-4 rounded-xl bg-gradient-to-r from-amber-500/10 to-yellow-500/10 border border-amber-500/20">
-        <h4 className="font-semibold mb-3 text-sm flex items-center gap-2">
-          <Lightbulb className="w-4 h-4" aria-hidden /> Consejos de joyería
-        </h4>
-        <ul className="space-y-1.5">
-          {datos.consejos.map((c, i) => (
-            <li key={i} className="text-white/70 text-sm flex items-start gap-2">
-              <span className="text-amber-400 mt-0.5 flex-shrink-0">✦</span>
-              {c}
-            </li>
+      <RecommendationTipsBlock
+        title="Consejos de joyería"
+        icon={Lightbulb}
+        tips={datos.consejos}
+        accent="from-amber-500/12 via-transparent to-[#5c4a3d]/20"
+      />
+    </RecommendationPanel>
+  )
+}
+
+function RecommendationPanel({ children }) {
+  return <div className="px-1 sm:px-0">{children}</div>
+}
+
+function RecommendationAccordion({
+  sec,
+  expanded,
+  onToggle,
+  children,
+}) {
+  const open = expanded === sec.id
+
+  return (
+    <motion.div
+      className="glass-card glass-card--elevated ring-1 ring-white/[0.08] border border-white/[0.08] overflow-hidden"
+      layout
+    >
+      <button
+        type="button"
+        onClick={() => onToggle(sec.id)}
+        className="w-full flex items-center justify-between gap-4 p-4 sm:p-5 min-h-[var(--min-touch,44px)] text-left group"
+        aria-expanded={open}
+      >
+        <div className="flex items-center gap-3 sm:gap-4 min-w-0">
+          <div
+            className={`w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-br ${sec.gradiente} flex items-center justify-center shadow-lg flex-shrink-0 ring-1 ring-white/15`}
+          >
+            <sec.Icono className="w-5 h-5 sm:w-6 sm:h-6 text-white drop-shadow" aria-hidden />
+          </div>
+          <div className="text-left min-w-0">
+            <h3 className="font-display text-lg sm:text-xl font-semibold text-white/95 tracking-tight truncate">
+              {sec.nombre}
+            </h3>
+            <p className="font-body text-white/55 text-xs sm:text-sm mt-0.5 line-clamp-2">{sec.subtitulo}</p>
+          </div>
+        </div>
+        <span className="text-white/45 group-hover:text-white/60 transition-colors shrink-0">
+          {open ? <ChevronUp className="w-5 h-5 sm:w-6 sm:h-6" /> : <ChevronDown className="w-5 h-5 sm:w-6 sm:h-6" />}
+        </span>
+      </button>
+
+      <AnimatePresence initial={false}>
+        {open && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
+            className="overflow-hidden"
+          >
+            <div className="px-4 sm:px-5 pb-5 sm:pb-6 pt-0 border-t border-white/[0.08]">
+              {children}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </motion.div>
+  )
+}
+
+function PanelRecomendaciones({ resultados, genero }) {
+  const mostrarMaquillaje = genero !== 'masculino'
+
+  const seccionesVisibles = useMemo(
+    () => (mostrarMaquillaje ? SECCIONES_BASE : SECCIONES_BASE.filter((s) => s.id !== 'maquillaje')),
+    [mostrarMaquillaje],
+  )
+
+  const [seccionExpandida, setSeccionExpandida] = useState(() =>
+    mostrarMaquillaje ? 'maquillaje' : 'joyeria',
+  )
+
+  const estacionId = resultados?.estacion?.id || 'verano'
+  const rec = RECOMENDACIONES_LOCALES[estacionId] || RECOMENDACIONES_LOCALES.verano
+
+  const toggleSeccion = (id) => setSeccionExpandida((prev) => (prev === id ? null : id))
+
+  return (
+    <div className="section-container py-8 md:py-10 border-t border-white/[0.06]">
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}>
+        <header className="text-center mb-10 md:mb-12 max-w-2xl mx-auto">
+          <p className="font-body text-[11px] sm:text-xs uppercase tracking-[0.22em] text-white/45 mb-3">Suite de estilo</p>
+          <h2 className="section-title text-2xl sm:text-3xl md:text-4xl mb-0 inline-flex flex-wrap items-center justify-center gap-2">
+            <Sparkles className="inline w-7 h-7 sm:w-8 sm:h-8 opacity-90 shrink-0" aria-hidden />
+            <span>Recomendaciones de belleza</span>
+          </h2>
+          <p className="font-body text-white/58 text-sm sm:text-base mt-4 leading-relaxed">
+            Colores y estilos que complementan tu colorimetría natural
+          </p>
+        </header>
+
+        <div className="max-w-4xl mx-auto space-y-4 md:space-y-5">
+          {seccionesVisibles.map((sec) => (
+            <RecommendationAccordion
+              key={sec.id}
+              sec={sec}
+              expanded={seccionExpandida}
+              onToggle={toggleSeccion}
+            >
+              {sec.id === 'maquillaje' && <MaquillajePanel datos={rec.maquillaje} />}
+              {sec.id === 'joyeria' && <JoyeriaPanel datos={rec.joyeria} />}
+            </RecommendationAccordion>
           ))}
-        </ul>
-      </div>
+        </div>
+      </motion.div>
     </div>
   )
 }

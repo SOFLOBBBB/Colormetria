@@ -9,6 +9,8 @@ import Webcam from 'react-webcam'
 import { useDropzone } from 'react-dropzone'
 import { Camera, Upload, RefreshCw, Check, ArrowLeft, AlertCircle, Lightbulb } from 'lucide-react'
 
+const easePremium = [0.22, 1, 0.36, 1]
+
 function CapturadorImagen({ onCaptura, onVolver, error }) {
   const [modo, setModo] = useState('seleccion') // 'seleccion', 'camara', 'archivo'
   const [imagenPrevia, setImagenPrevia] = useState(null)
@@ -84,78 +86,85 @@ function CapturadorImagen({ onCaptura, onVolver, error }) {
   }
 
   return (
-    <div className="section-container py-8">
+    <div className="section-container py-8 md:py-10">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.45, ease: easePremium }}
         className="max-w-2xl mx-auto"
       >
-        {/* Título */}
-        <div className="text-center mb-8 sm:mb-10 max-w-xl mx-auto px-2">
-          <h2 className="section-title text-left sm:text-center">Captura tu imagen</h2>
-          <p className="font-body text-white/62 text-sm sm:text-base leading-relaxed">
-            Toma una foto clara de tu rostro para el análisis de colorimetría.
+        {/* Encabezado editorial */}
+        <header className="text-center mb-8 sm:mb-10 max-w-xl mx-auto px-1">
+          <p className="font-body text-[11px] uppercase tracking-[0.22em] text-white/45 mb-2">
+            Paso 2 · Referencia visual
           </p>
-        </div>
+          <h2 className="section-title text-2xl sm:text-3xl md:text-4xl mb-3">
+            Captura tu imagen
+          </h2>
+          <p className="font-body text-white/62 text-sm sm:text-base leading-relaxed">
+            Toma una foto clara de tu rostro para el análisis de colorimetría. Buena luz natural y rostro centrado.
+          </p>
+        </header>
 
         {/* Mensaje de error */}
         {error && (
           <motion.div
-            className="mb-6 p-4 rounded-xl bg-red-500/20 border border-red-500/50 flex items-start gap-3"
-            initial={{ opacity: 0, y: -10 }}
+            className="mb-6 sm:mb-8 rounded-[var(--radius-lg)] border border-red-400/35 bg-red-500/[0.12] ring-1 ring-red-500/25 backdrop-blur-sm px-4 py-3.5 sm:px-5 sm:py-4 flex items-start gap-3"
+            initial={{ opacity: 0, y: -8 }}
             animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.35, ease: easePremium }}
+            role="alert"
           >
-            <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
-            <div>
-              <p className="font-medium text-red-400">Error en el análisis</p>
-              <p className="text-sm text-red-300/80">{error}</p>
+            <AlertCircle className="w-5 h-5 text-red-300 flex-shrink-0 mt-0.5" aria-hidden />
+            <div className="min-w-0">
+              <p className="font-display text-sm font-semibold text-red-200">No se pudo completar el análisis</p>
+              <p className="text-sm text-red-100/85 leading-relaxed mt-1">{error}</p>
             </div>
           </motion.div>
         )}
 
-        {/* Contenedor principal */}
-        <div className="glass-card glass-card--elevated transition-shadow duration-300 hover:border-white/[0.18]">
+        {/* Tarjeta principal */}
+        <div className="glass-card glass-card--elevated ring-1 ring-white/[0.08] border border-white/[0.1] rounded-[var(--radius-xl)] p-5 sm:p-6 md:p-8">
           {/* Selección de modo */}
           {modo === 'seleccion' && (
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className="grid grid-cols-1 md:grid-cols-2 gap-6"
+              transition={{ duration: 0.35 }}
+              className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-5"
             >
-              {/* Opción cámara */}
               <motion.button
                 type="button"
                 onClick={() => {
                   setModo('camara')
                   setCamaraActiva(true)
                 }}
-                className="min-h-[var(--min-touch,44px)] p-6 sm:p-8 rounded-xl border-2 border-white/20 bg-white/5 hover:bg-white/10 hover:border-purple-400 transition-all text-center group"
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
+                className="min-h-[var(--min-touch,44px)] rounded-[var(--radius-lg)] border border-white/12 bg-white/[0.04] p-6 sm:p-7 text-center transition-all hover:bg-white/[0.08] hover:border-white/22 focus-visible:outline-offset-2 group"
+                whileHover={{ scale: 1.01 }}
+                whileTap={{ scale: 0.99 }}
               >
-                <div className="w-16 h-16 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
-                  <Camera className="w-8 h-8 text-white" />
+                <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-br from-purple-500/90 to-pink-500/85 flex items-center justify-center mx-auto mb-4 shadow-[0_12px_32px_rgba(0,0,0,0.35)] ring-1 ring-white/15 group-hover:scale-[1.03] transition-transform">
+                  <Camera className="w-7 h-7 sm:w-8 sm:h-8 text-white" aria-hidden />
                 </div>
-                <h3 className="font-display text-xl font-semibold mb-2">Usar Cámara</h3>
-                <p className="text-white/60 text-sm">
-                  Toma una foto con tu webcam
+                <h3 className="font-display text-lg sm:text-xl font-semibold text-white/95 mb-2">Usar cámara</h3>
+                <p className="font-body text-white/58 text-sm leading-relaxed">
+                  Fotografía en vivo con tu webcam
                 </p>
               </motion.button>
 
-              {/* Opción subir archivo */}
               <motion.button
                 type="button"
                 onClick={() => setModo('archivo')}
-                className="min-h-[var(--min-touch,44px)] p-6 sm:p-8 rounded-xl border-2 border-white/20 bg-white/5 hover:bg-white/10 hover:border-blue-400 transition-all text-center group"
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
+                className="min-h-[var(--min-touch,44px)] rounded-[var(--radius-lg)] border border-white/12 bg-white/[0.04] p-6 sm:p-7 text-center transition-all hover:bg-white/[0.08] hover:border-white/22 focus-visible:outline-offset-2 group"
+                whileHover={{ scale: 1.01 }}
+                whileTap={{ scale: 0.99 }}
               >
-                <div className="w-16 h-16 rounded-full bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
-                  <Upload className="w-8 h-8 text-white" />
+                <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-br from-sky-500/90 to-cyan-500/85 flex items-center justify-center mx-auto mb-4 shadow-[0_12px_32px_rgba(0,0,0,0.35)] ring-1 ring-white/15 group-hover:scale-[1.03] transition-transform">
+                  <Upload className="w-7 h-7 sm:w-8 sm:h-8 text-white" aria-hidden />
                 </div>
-                <h3 className="font-display text-xl font-semibold mb-2">Subir Foto</h3>
-                <p className="text-white/60 text-sm">
-                  Sube una imagen desde tu dispositivo
+                <h3 className="font-display text-lg sm:text-xl font-semibold text-white/95 mb-2">Subir foto</h3>
+                <p className="font-body text-white/58 text-sm leading-relaxed">
+                  Archivo desde tu galería o explorador
                 </p>
               </motion.button>
             </motion.div>
@@ -166,57 +175,64 @@ function CapturadorImagen({ onCaptura, onVolver, error }) {
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
+              transition={{ duration: 0.35 }}
+              className="space-y-6 sm:space-y-7"
             >
-              {/* Vista previa de imagen capturada o webcam */}
-              <div className="relative aspect-square w-full max-w-sm sm:max-w-md mx-auto rounded-2xl overflow-hidden bg-black/50 mb-4 sm:mb-6">
-                {imagenPrevia ? (
-                  <img
-                    src={imagenPrevia}
-                    alt="Captura"
-                    className="w-full h-full object-cover"
-                    style={{ transform: 'scaleX(-1)' }}
-                  />
-                ) : (
-                  <>
-                    <Webcam
-                      audio={false}
-                      ref={webcamRef}
-                      screenshotFormat="image/jpeg"
-                      videoConstraints={videoConstraints}
+              <div className="relative mx-auto w-full max-w-md sm:max-w-lg">
+                <div className="relative aspect-square w-full rounded-2xl overflow-hidden bg-black/60 ring-1 ring-white/15 shadow-[0_24px_48px_rgba(0,0,0,0.45)]">
+                  {imagenPrevia ? (
+                    <img
+                      src={imagenPrevia}
+                      alt="Vista previa de la captura"
                       className="w-full h-full object-cover"
                       style={{ transform: 'scaleX(-1)' }}
                     />
-                    {/* Guía de encuadre */}
-                    <div className="absolute inset-0 pointer-events-none">
-                      <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-48 h-64 border-2 border-white/30 rounded-full" />
-                      <div className="absolute bottom-4 left-0 right-0 text-center text-white/70 text-sm">
-                        Centra tu rostro en el óvalo
+                  ) : (
+                    <>
+                      <Webcam
+                        audio={false}
+                        ref={webcamRef}
+                        screenshotFormat="image/jpeg"
+                        videoConstraints={videoConstraints}
+                        className="w-full h-full object-cover"
+                        style={{ transform: 'scaleX(-1)' }}
+                      />
+                      <div
+                        className="absolute inset-0 pointer-events-none bg-gradient-to-t from-black/55 via-transparent to-black/20"
+                        aria-hidden
+                      />
+                      <div className="absolute inset-0 pointer-events-none flex flex-col">
+                        <div className="flex-1 flex items-center justify-center p-4">
+                          <div className="w-[52%] max-w-[220px] aspect-[3/4] border-2 border-white/35 rounded-[999px] shadow-[0_0_0_1px_rgba(255,255,255,0.08)]" />
+                        </div>
+                        <p className="pb-4 px-3 text-center font-body text-xs sm:text-sm text-white/85 drop-shadow-md">
+                          Centra tu rostro en el óvalo
+                        </p>
                       </div>
-                    </div>
-                  </>
-                )}
+                    </>
+                  )}
+                </div>
               </div>
 
-              {/* Controles */}
-              <div className="flex flex-wrap justify-center gap-3 sm:gap-4">
+              <div className="flex flex-wrap justify-center gap-3 sm:gap-4 pt-1">
                 {!imagenPrevia ? (
                   <>
                     <button
                       type="button"
                       onClick={volverASeleccion}
-                      className="btn-ghost min-h-[var(--min-touch,44px)] px-4 sm:px-6 py-3 flex items-center justify-center gap-2"
+                      className="btn-ghost min-h-[var(--min-touch,44px)] px-5 sm:px-6 py-3 inline-flex items-center justify-center gap-2 rounded-[var(--radius-md)] font-medium"
                     >
-                      <ArrowLeft className="w-5 h-5" />
+                      <ArrowLeft className="w-5 h-5 shrink-0" aria-hidden />
                       Volver
                     </button>
                     <motion.button
                       type="button"
                       onClick={capturarFoto}
-                      className="btn-primary flex items-center gap-2 text-base sm:text-lg min-h-[var(--min-touch,44px)]"
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
+                      className="btn-primary inline-flex items-center gap-2 text-base sm:text-lg min-h-[var(--min-touch,44px)] px-6 sm:px-8 rounded-[var(--radius-md)] font-semibold"
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
                     >
-                      <Camera className="w-5 h-5" />
+                      <Camera className="w-5 h-5 shrink-0" aria-hidden />
                       Capturar
                     </motion.button>
                   </>
@@ -225,19 +241,19 @@ function CapturadorImagen({ onCaptura, onVolver, error }) {
                     <button
                       type="button"
                       onClick={reiniciarCaptura}
-                      className="btn-ghost min-h-[var(--min-touch,44px)] px-4 sm:px-6 py-3 flex items-center justify-center gap-2"
+                      className="btn-ghost min-h-[var(--min-touch,44px)] px-5 sm:px-6 py-3 inline-flex items-center justify-center gap-2 rounded-[var(--radius-md)] font-medium"
                     >
-                      <RefreshCw className="w-5 h-5" aria-hidden />
+                      <RefreshCw className="w-5 h-5 shrink-0" aria-hidden />
                       Otra foto
                     </button>
                     <motion.button
                       type="button"
                       onClick={confirmarImagen}
-                      className="btn-primary flex items-center gap-2 text-base sm:text-lg min-h-[var(--min-touch,44px)]"
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
+                      className="btn-primary inline-flex items-center gap-2 text-base sm:text-lg min-h-[var(--min-touch,44px)] px-6 sm:px-8 rounded-[var(--radius-md)] font-semibold"
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
                     >
-                      <Check className="w-5 h-5" />
+                      <Check className="w-5 h-5 shrink-0" aria-hidden />
                       Analizar
                     </motion.button>
                   </>
@@ -251,53 +267,61 @@ function CapturadorImagen({ onCaptura, onVolver, error }) {
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
+              transition={{ duration: 0.35 }}
+              className="space-y-6 sm:space-y-7"
             >
               {!imagenPrevia ? (
                 <div
                   {...getRootProps()}
-                  className={`border-2 border-dashed rounded-2xl p-6 sm:p-12 text-center cursor-pointer transition-all min-h-[160px] flex flex-col items-center justify-center ${isDragActive
-                      ? 'border-purple-400 bg-purple-500/10'
-                      : 'border-white/30 hover:border-white/50'
-                    }`}
+                  className={`border-2 border-dashed p-8 sm:p-12 text-center cursor-pointer transition-all min-h-[200px] flex flex-col items-center justify-center rounded-[var(--radius-xl)] ring-1 ${
+                    isDragActive
+                      ? 'border-purple-400/70 bg-purple-500/15 ring-purple-400/25 scale-[1.01]'
+                      : 'border-white/22 bg-white/[0.03] hover:border-white/35 hover:bg-white/[0.05] ring-white/[0.06]'
+                  }`}
                   role="button"
                   tabIndex={0}
-                  onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') e.currentTarget.click() }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') e.currentTarget.click()
+                  }}
                   aria-label="Arrastra una imagen o haz clic para seleccionar"
                 >
                   <input {...getInputProps()} aria-describedby="consejos-captura" />
-                  <Upload className="w-16 h-16 text-white/50 mx-auto mb-4" />
+                  <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-white/[0.06] border border-white/10 flex items-center justify-center mx-auto mb-5">
+                    <Upload className="w-8 h-8 sm:w-9 sm:h-9 text-white/55" aria-hidden />
+                  </div>
                   {isDragActive ? (
-                    <p className="text-lg">Suelta la imagen aquí...</p>
+                    <p className="font-display text-lg text-white/95">Suelta la imagen aquí</p>
                   ) : (
                     <>
-                      <p className="text-lg mb-2">
-                        Arrastra una imagen aquí o haz clic para seleccionar
+                      <p className="font-display text-lg sm:text-xl text-white/95 mb-2">
+                        Arrastra una imagen o haz clic para elegir
                       </p>
-                      <p className="text-white/50 text-sm">
-                        Formatos aceptados: JPG, PNG, WebP
+                      <p className="font-body text-white/50 text-sm max-w-sm mx-auto leading-relaxed">
+                        JPG, PNG o WebP · una sola imagen
                       </p>
                     </>
                   )}
                 </div>
               ) : (
-                <div className="relative aspect-square max-w-md mx-auto rounded-2xl overflow-hidden bg-black/50 mb-6">
-                  <img
-                    src={imagenPrevia}
-                    alt="Imagen subida"
-                    className="w-full h-full object-cover"
-                  />
+                <div className="relative mx-auto w-full max-w-md sm:max-w-lg">
+                  <div className="relative aspect-square rounded-2xl overflow-hidden bg-black/60 ring-1 ring-white/15 shadow-[0_24px_48px_rgba(0,0,0,0.45)]">
+                    <img
+                      src={imagenPrevia}
+                      alt="Imagen seleccionada para el análisis"
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
                 </div>
               )}
 
-              {/* Controles */}
-              <div className="flex justify-center gap-4 mt-6">
+              <div className="flex flex-wrap justify-center gap-3 sm:gap-4 pt-1">
                 {!imagenPrevia ? (
                   <button
                     type="button"
                     onClick={volverASeleccion}
-                    className="btn-ghost px-6 py-3 flex items-center gap-2 min-h-[var(--min-touch,44px)]"
+                    className="btn-ghost min-h-[var(--min-touch,44px)] px-5 sm:px-6 py-3 inline-flex items-center gap-2 rounded-[var(--radius-md)] font-medium"
                   >
-                    <ArrowLeft className="w-5 h-5" />
+                    <ArrowLeft className="w-5 h-5 shrink-0" aria-hidden />
                     Volver
                   </button>
                 ) : (
@@ -305,18 +329,19 @@ function CapturadorImagen({ onCaptura, onVolver, error }) {
                     <button
                       type="button"
                       onClick={reiniciarCaptura}
-                      className="btn-ghost px-6 py-3 flex items-center gap-2 min-h-[var(--min-touch,44px)]"
+                      className="btn-ghost min-h-[var(--min-touch,44px)] px-5 sm:px-6 py-3 inline-flex items-center gap-2 rounded-[var(--radius-md)] font-medium"
                     >
-                      <RefreshCw className="w-5 h-5" />
-                      Otra Imagen
+                      <RefreshCw className="w-5 h-5 shrink-0" aria-hidden />
+                      Otra imagen
                     </button>
                     <motion.button
+                      type="button"
                       onClick={confirmarImagen}
-                      className="btn-primary flex items-center gap-2 text-lg"
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
+                      className="btn-primary inline-flex items-center gap-2 text-base sm:text-lg min-h-[var(--min-touch,44px)] px-6 sm:px-8 rounded-[var(--radius-md)] font-semibold"
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
                     >
-                      <Check className="w-5 h-5" />
+                      <Check className="w-5 h-5 shrink-0" aria-hidden />
                       Analizar
                     </motion.button>
                   </>
@@ -328,30 +353,56 @@ function CapturadorImagen({ onCaptura, onVolver, error }) {
 
         {/* Consejos */}
         <motion.div
-          className="mt-6 sm:mt-8 p-4 rounded-xl bg-white/5 border border-white/10"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.3 }}
+          className="mt-6 sm:mt-8 glass-card glass-card--elevated ring-1 ring-white/[0.08] border border-white/[0.1] rounded-[var(--radius-lg)] p-5 sm:p-6"
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.15, duration: 0.4, ease: easePremium }}
         >
-          <h4 className="font-semibold mb-2 flex items-center gap-2 text-sm sm:text-base" id="consejos-captura">
-            <Lightbulb className="w-4 h-4 flex-shrink-0" aria-hidden />
+          <h4
+            className="font-display text-base sm:text-lg font-semibold text-white/95 mb-4 flex items-center gap-2.5"
+            id="consejos-captura"
+          >
+            <span className="inline-flex p-2 rounded-lg bg-amber-400/15 border border-amber-400/25">
+              <Lightbulb className="w-4 h-4 text-amber-200/90 shrink-0" aria-hidden />
+            </span>
             Consejos para mejores resultados
           </h4>
-          <ul className="text-sm text-white/70 space-y-1">
-            <li>• Usa buena iluminación natural (evita luz artificial muy amarilla)</li>
-            <li>• Mira directamente a la cámara</li>
-            <li>• Evita usar filtros o mucho maquillaje</li>
-            <li>• Asegúrate de que se vea tu cabello natural</li>
+          <ul className="font-body text-sm text-white/72 space-y-2.5 leading-relaxed">
+            <li className="flex gap-2.5">
+              <span className="text-white/35 shrink-0 mt-0.5" aria-hidden>
+                ·
+              </span>
+              <span>Iluminación natural suave; evita focos muy cálidos o muy fríos encima del rostro.</span>
+            </li>
+            <li className="flex gap-2.5">
+              <span className="text-white/35 shrink-0 mt-0.5" aria-hidden>
+                ·
+              </span>
+              <span>Mira de frente a la cámara, sin filtros que alteren el tono de piel.</span>
+            </li>
+            <li className="flex gap-2.5">
+              <span className="text-white/35 shrink-0 mt-0.5" aria-hidden>
+                ·
+              </span>
+              <span>Maquillaje muy cargado puede sesgar el análisis; un look natural es ideal.</span>
+            </li>
+            <li className="flex gap-2.5">
+              <span className="text-white/35 shrink-0 mt-0.5" aria-hidden>
+                ·
+              </span>
+              <span>Que se vea el cabello natural y el contorno del rostro sin recortes extremos.</span>
+            </li>
           </ul>
         </motion.div>
 
-        {/* Botón volver al inicio */}
-        <div className="text-center mt-6">
+        {/* Volver al inicio */}
+        <div className="text-center mt-8 sm:mt-10">
           <button
+            type="button"
             onClick={onVolver}
-            className="text-white/50 hover:text-white transition-colors text-sm flex items-center gap-2 mx-auto"
+            className="btn-ghost min-h-[var(--min-touch,44px)] inline-flex items-center justify-center gap-2 px-4 text-sm text-white/65 hover:text-white/90 mx-auto rounded-[var(--radius-md)]"
           >
-            <ArrowLeft className="w-4 h-4" />
+            <ArrowLeft className="w-4 h-4 shrink-0" aria-hidden />
             Volver al inicio
           </button>
         </div>
@@ -361,4 +412,3 @@ function CapturadorImagen({ onCaptura, onVolver, error }) {
 }
 
 export default CapturadorImagen
-
