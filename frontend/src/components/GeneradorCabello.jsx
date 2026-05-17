@@ -214,10 +214,10 @@ function GeneradorCabello({ imagen, estacion, genero }) {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 xl:gap-8">
         {/* Panel izquierdo */}
         <div>
-          <div className="mb-6">
+          <div className="mb-5">
             <div className="rounded-2xl border border-violet-400/20 bg-violet-500/10 p-4 mb-3">
               <p className="font-body text-[11px] uppercase tracking-[0.16em] text-violet-200/80 mb-1">
                 Simulación visual en pruebas
@@ -234,12 +234,12 @@ function GeneradorCabello({ imagen, estacion, genero }) {
           </div>
 
           {/* Estilos recomendados */}
-          <div className="mb-6 p-4 rounded-2xl border border-white/[0.08] bg-white/[0.03] ring-1 ring-white/[0.04]">
+          <div className="mb-5 p-4 rounded-2xl border border-white/[0.08] bg-white/[0.03] ring-1 ring-white/[0.04]">
             <h4 className="font-semibold mb-3 flex items-center gap-2 text-white/90">
               <Scissors className="w-4 h-4 text-violet-400" />
               Recomendaciones editoriales de estilo
             </h4>
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               {datos.estilos.map((estilo) => (
                 <motion.button
                   key={estilo.id}
@@ -279,7 +279,7 @@ function GeneradorCabello({ imagen, estacion, genero }) {
           </AnimatePresence>
 
           {/* Colores recomendados */}
-          <div className="mb-6 p-4 rounded-2xl border border-white/[0.08] bg-white/[0.03] ring-1 ring-white/[0.04]">
+          <div className="mb-5 p-4 rounded-2xl border border-white/[0.08] bg-white/[0.03] ring-1 ring-white/[0.04]">
             <h4 className="font-semibold mb-3 flex items-center gap-2 text-white/90">
               <Palette className="w-4 h-4 text-fuchsia-400" />
               Colores para tu Estación
@@ -328,7 +328,7 @@ function GeneradorCabello({ imagen, estacion, genero }) {
 
         {/* Panel derecho — Foto y generador */}
         <div>
-          <h4 className="font-semibold mb-3 text-white/90">Tu Foto / Previsualización</h4>
+          <h4 className="font-semibold mb-3 text-white/90">Tu Foto / Previsualización editorial</h4>
 
           {/* Vista principal de imagen */}
           <div className="aspect-square rounded-2xl overflow-hidden bg-white/5 border border-white/10 relative mb-4">
@@ -399,7 +399,7 @@ function GeneradorCabello({ imagen, estacion, genero }) {
 
           {/* Controles de cámara */}
           {!mostrarCamara ? (
-            <div className="flex gap-2 mb-4">
+            <div className="flex flex-col sm:flex-row gap-2 mb-4">
               <motion.button
                 onClick={() => { setMostrarCamara(true); setImagenPrevia(null) }}
                 className="flex-1 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 flex items-center justify-center gap-2 text-sm transition-colors"
@@ -433,7 +433,7 @@ function GeneradorCabello({ imagen, estacion, genero }) {
               )}
             </div>
           ) : (
-            <div className="flex gap-2 mb-4">
+            <div className="flex flex-col sm:flex-row gap-2 mb-4">
               {!imagenPrevia ? (
                 <>
                   <button

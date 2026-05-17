@@ -147,7 +147,7 @@ function ProbadorVisual({ genero, estacion = 'verano' }) {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-[1.1fr_0.9fr] gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-[1.05fr_0.95fr] gap-4">
         <div className="rounded-2xl border border-white/10 studio-fondo p-4 min-h-[460px] relative overflow-hidden">
           <div className={`maniqui-shell ${siluetaClass}`}>
             <div className="maniqui-cabeza" />
@@ -157,7 +157,7 @@ function ProbadorVisual({ genero, estacion = 'verano' }) {
             {entries.map(([categoria, prenda], idx) => (
               <motion.div
                 key={categoria}
-                className="absolute right-0 translate-x-[36%] w-[148px] rounded-lg border border-white/15 px-2 py-1 text-[11px] text-white/85 shadow-[0_12px_20px_rgba(0,0,0,0.3)]"
+                className="absolute right-0 lg:translate-x-[36%] md:translate-x-[20%] translate-x-[8%] w-[138px] rounded-lg border border-white/15 px-2 py-1 text-[11px] text-white/85 shadow-[0_12px_20px_rgba(0,0,0,0.3)]"
                 style={{
                   top: `${108 + idx * 46}px`,
                   background: prenda ? `${prenda.color}66` : 'rgba(255,255,255,0.08)',
@@ -216,7 +216,7 @@ function ProbadorVisual({ genero, estacion = 'verano' }) {
                     <select
                       value={seleccionDemo[categoria] || ''}
                       onChange={(e) => setSeleccionDemo((prev) => ({ ...prev, [categoria]: e.target.value }))}
-                      className="w-full rounded-lg border border-white/15 bg-[#171826] px-2 py-2 text-xs"
+                      className="w-full min-h-[40px] rounded-lg border border-white/15 bg-[#171826] px-2 py-2 text-xs"
                     >
                       <option value="">Primera sugerida</option>
                       {(demoAgrupada[categoria] || []).map((item) => (
@@ -232,7 +232,7 @@ function ProbadorVisual({ genero, estacion = 'verano' }) {
           )}
           <div className="mt-4 rounded-xl border border-violet-400/25 bg-violet-500/10 p-3 text-sm text-white/75 inline-flex items-start gap-2">
             <Sparkles className="w-4 h-4 mt-0.5 text-violet-200" />
-            Ajusta colores y categorías desde Clóset Inteligente para mejorar esta composición.
+            Si no hay prendas guardadas, usa las sugeridas y selecciónalas por categoría para vestir el maniquí.
           </div>
         </div>
       </div>

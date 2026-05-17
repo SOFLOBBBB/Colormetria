@@ -117,7 +117,7 @@ function GaleriaOutfits({ estacion, genero }) {
         </label>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5 mb-6">
         {outfitsFiltrados.map((outfit, index) => (
           <motion.div
             key={outfit.id}
@@ -159,11 +159,11 @@ function GaleriaOutfits({ estacion, genero }) {
                 <Lightbulb className="w-3.5 h-3.5 mt-0.5 text-fuchsia-300" />
                 <span>{outfit.porQueFunciona}</span>
               </p>
-              <div className="mt-4 grid grid-cols-2 gap-2">
+              <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-2">
                 <button
                   type="button"
                   onClick={() => handleInspiracion(outfit)}
-                  className="min-h-[44px] rounded-lg border border-white/15 bg-white/5 hover:bg-white/10 text-xs inline-flex items-center justify-center gap-1"
+                  className="min-h-[44px] px-2 rounded-lg border border-white/15 bg-white/5 hover:bg-white/10 text-xs inline-flex items-center justify-center gap-1 text-center"
                 >
                   <BookmarkPlus className="w-3.5 h-3.5" />
                   Usar inspiración
@@ -171,7 +171,7 @@ function GaleriaOutfits({ estacion, genero }) {
                 <button
                   type="button"
                   onClick={() => setFeedback(`Puedes ver "${outfit.nombre}" en el Probador Visual desde Suite Premium.`)}
-                  className="min-h-[44px] rounded-lg border border-white/15 bg-white/5 hover:bg-white/10 text-xs inline-flex items-center justify-center gap-1"
+                  className="min-h-[44px] px-2 rounded-lg border border-white/15 bg-white/5 hover:bg-white/10 text-xs inline-flex items-center justify-center gap-1 text-center"
                 >
                   <Sparkles className="w-3.5 h-3.5" />
                   Ver en probador
@@ -179,7 +179,7 @@ function GaleriaOutfits({ estacion, genero }) {
                 <button
                   type="button"
                   onClick={() => handleAgregarPrendas(outfit)}
-                  className="min-h-[44px] rounded-lg border border-white/15 bg-white/5 hover:bg-white/10 text-xs inline-flex items-center justify-center gap-1 col-span-2"
+                  className="min-h-[44px] px-2 rounded-lg border border-white/15 bg-white/5 hover:bg-white/10 text-xs inline-flex items-center justify-center gap-1 sm:col-span-2 text-center"
                 >
                   <PlusSquare className="w-3.5 h-3.5" />
                   Agregar prendas sugeridas

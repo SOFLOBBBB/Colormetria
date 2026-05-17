@@ -1,16 +1,16 @@
 import { useEffect, useRef, useState } from 'react'
 import { motion } from 'framer-motion'
 import {
-  AlertTriangle,
   RotateCcw,
   Wand2,
   Download,
-  SlidersHorizontal,
   Loader2,
   CheckCircle2,
   ShieldAlert,
+  ChevronDown,
+  ChevronUp,
 } from 'lucide-react'
-import { buildHeuristicMask, HAIR_MODEL_SOURCE, loadHairSegmenter } from '../utils/hairSegmentation'
+import { buildHeuristicMask, loadHairSegmenter } from '../utils/hairSegmentation'
 
 const BLEND_MODES = ['multiply', 'overlay', 'soft-light']
 
@@ -65,6 +65,7 @@ function HairTryOnLab({ image, suggestedColors = [] }) {
   const [segmentationMode, setSegmentationMode] = useState('idle')
   const [segmentationError, setSegmentationError] = useState('')
   const [usingFallback, setUsingFallback] = useState(false)
+  const [manualOpen, setManualOpen] = useState(false)
 
   useEffect(() => {
     const { src, revoke } = resolveImageSource(image)
@@ -133,20 +134,20 @@ function HairTryOnLab({ image, suggestedColors = [] }) {
             setUsingFallback(false)
             setSegmentationMode('ready')
           } catch (err) {
-            setSegmentationError(err.message || 'No se pudo segmentar con MediaPipe.')
+            setSegmentationError('Modo simulación manual activado.')
             setUsingFallback(true)
             setSegmentationMode('fallback')
           }
         }
         img.onerror = () => {
-          setSegmentationError('No se pudo preparar la imagen para segmentación.')
+          setSegmentationError('Modo simulación manual activado.')
           setUsingFallback(true)
           setSegmentationMode('fallback')
         }
         img.src = imageSrc
       } catch (err) {
         if (cancelled) return
-        setSegmentationError(err.message || 'Falló la carga de MediaPipe.')
+        setSegmentationError('Modo simulación manual activado.')
         setUsingFallback(true)
         setSegmentationMode('fallback')
       }
@@ -289,7 +290,7 @@ function HairTryOnLab({ image, suggestedColors = [] }) {
   if (!imageSrc) {
     return (
       <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-5">
-        <p className="text-sm text-white/70 font-medium mb-2">Hair Try-On Lab</p>
+        <p className="text-sm text-white/70 font-medium mb-2">Prueba visual de color de cabello</p>
         <p className="text-sm text-white/55">
           Carga o captura una imagen para activar la prueba visual de color de cabello.
         </p>
@@ -299,20 +300,11 @@ function HairTryOnLab({ image, suggestedColors = [] }) {
 
   return (
     <div className="rounded-2xl border border-white/[0.1] bg-gradient-to-br from-white/[0.06] via-white/[0.03] to-white/[0.04] p-4 sm:p-5 ring-1 ring-white/[0.06]">
-      <div className="flex items-start gap-3 mb-4">
-        <div className="w-10 h-10 rounded-lg bg-violet-500/20 border border-violet-400/20 flex items-center justify-center">
-          <SlidersHorizontal className="w-5 h-5 text-violet-200" />
-        </div>
-        <div>
-          <h4 className="font-semibold text-white/95">Hair Try-On Lab (beta)</h4>
-          <p className="text-xs text-amber-200/90 mt-1 inline-flex items-center gap-1.5">
-            <AlertTriangle className="w-3.5 h-3.5" />
-            Simulación experimental. El resultado puede variar según iluminación, cabello y fondo.
-          </p>
-          <p className="text-[11px] text-white/45 mt-1">
-            Modelo actual: CDN oficial ({HAIR_MODEL_SOURCE.type}). Ruta configurable en `hairSegmentation.js`.
-          </p>
-        </div>
+      <div className="mb-4 rounded-xl border border-white/10 bg-white/5 p-3">
+        <p className="text-sm font-medium text-white/90">Simulación visual en pruebas</p>
+        <p className="text-xs text-white/60 mt-1">
+          El resultado puede variar según iluminación, cabello y fondo.
+        </p>
       </div>
 
       {loadError && (
@@ -340,7 +332,7 @@ function HairTryOnLab({ image, suggestedColors = [] }) {
         {usingFallback && (
           <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-amber-300/25 bg-amber-500/10 text-amber-100">
             <ShieldAlert className="w-3.5 h-3.5" />
-            Fallback activado
+            Modo simulación manual activado
           </span>
         )}
       </div>
@@ -351,8 +343,8 @@ function HairTryOnLab({ image, suggestedColors = [] }) {
       )}
 
       <div className="grid grid-cols-1 lg:grid-cols-[1.1fr_0.9fr] gap-4">
-        <div className="rounded-xl border border-white/10 bg-black/20 p-2 overflow-auto">
-          <canvas ref={canvasRef} className="w-full h-auto rounded-lg bg-black/30" />
+        <div className="rounded-xl border border-white/10 bg-black/20 p-2 overflow-auto max-h-[520px]">
+          <canvas ref={canvasRef} className="w-full h-auto max-h-[500px] mx-auto block rounded-lg bg-black/30 object-contain" />
         </div>
 
         <div className="space-y-4">
@@ -415,40 +407,51 @@ function HairTryOnLab({ image, suggestedColors = [] }) {
             />
           </div>
 
-          <div className="rounded-xl border border-white/10 bg-white/[0.03] p-3 space-y-2.5">
-            {usingFallback && [
-              ['x', draftMask.x, 10, 90],
-              ['y', draftMask.y, 5, 55],
-              ['width', draftMask.width, 20, 90],
-              ['height', draftMask.height, 12, 60],
-            ].map(([key, value, min, max]) => (
-              <label key={key} className="block">
-                <div className="flex justify-between text-xs text-white/65 mb-1">
-                  <span className="capitalize">{key}</span>
-                  <span>{value}%</span>
-                </div>
-                <input
-                  type="range"
-                  min={min}
-                  max={max}
-                  value={value}
-                  onChange={(e) => handleMaskChange(key, e.target.value)}
-                  className="w-full"
-                />
-              </label>
-            ))}
-            {!usingFallback && (
-              <p className="text-xs text-white/55">
-                Ajustes manuales de máscara se habilitan solo cuando fallback está activo.
-              </p>
+          <div className="rounded-xl border border-white/10 bg-white/[0.03] overflow-hidden">
+            <button
+              type="button"
+              onClick={() => setManualOpen((prev) => !prev)}
+              className="w-full min-h-[44px] px-3 py-2.5 border-b border-white/10 bg-white/[0.04] hover:bg-white/[0.08] inline-flex items-center justify-between text-sm"
+            >
+              <span>Ajuste manual de máscara</span>
+              {manualOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+            </button>
+            {manualOpen && (
+              <div className="p-3 space-y-2.5">
+                {usingFallback ? [
+                  ['x', draftMask.x, 10, 90],
+                  ['y', draftMask.y, 5, 55],
+                  ['width', draftMask.width, 20, 90],
+                  ['height', draftMask.height, 12, 60],
+                ].map(([key, value, min, max]) => (
+                  <label key={key} className="block">
+                    <div className="flex justify-between text-xs text-white/65 mb-1">
+                      <span className="capitalize">{key}</span>
+                      <span>{value}%</span>
+                    </div>
+                    <input
+                      type="range"
+                      min={min}
+                      max={max}
+                      value={value}
+                      onChange={(e) => handleMaskChange(key, e.target.value)}
+                      className="w-full"
+                    />
+                  </label>
+                )) : (
+                  <p className="text-xs text-white/55">
+                    Esta sección se activa cuando el modo de simulación manual está activo.
+                  </p>
+                )}
+              </div>
             )}
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
             <motion.button
               type="button"
               onClick={handleApply}
-              className="min-h-[44px] rounded-xl bg-gradient-to-r from-violet-500 to-fuchsia-500 text-sm font-medium inline-flex items-center justify-center gap-1.5"
+              className="min-h-[44px] px-3 rounded-xl bg-gradient-to-r from-violet-500 to-fuchsia-500 text-sm font-medium inline-flex items-center justify-center gap-1.5 text-center"
               whileHover={{ scale: 1.01 }}
             >
               <Wand2 className="w-4 h-4" />
@@ -457,7 +460,7 @@ function HairTryOnLab({ image, suggestedColors = [] }) {
             <button
               type="button"
               onClick={handleReset}
-              className="min-h-[44px] rounded-xl border border-white/15 bg-white/5 text-sm inline-flex items-center justify-center gap-1.5"
+              className="min-h-[44px] px-3 rounded-xl border border-white/15 bg-white/5 text-sm inline-flex items-center justify-center gap-1.5 text-center"
             >
               <RotateCcw className="w-4 h-4" />
               Restablecer
@@ -465,7 +468,7 @@ function HairTryOnLab({ image, suggestedColors = [] }) {
             <button
               type="button"
               onClick={handleDownload}
-              className="min-h-[44px] rounded-xl border border-white/15 bg-white/5 text-sm inline-flex items-center justify-center gap-1.5"
+              className="min-h-[44px] px-3 rounded-xl border border-white/15 bg-white/5 text-sm inline-flex items-center justify-center gap-1.5 text-center"
             >
               <Download className="w-4 h-4" />
               Descargar

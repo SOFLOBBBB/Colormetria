@@ -108,12 +108,12 @@ function ClosetInteligente({ genero, estacion = 'verano' }) {
           value={form.nombre}
           onChange={(e) => setForm((p) => ({ ...p, nombre: e.target.value }))}
           placeholder="Nombre de la prenda"
-          className="rounded-xl bg-white/5 border border-white/10 px-3 py-2.5 text-sm"
+          className="min-h-[44px] rounded-xl bg-white/5 border border-white/10 px-3 py-2.5 text-sm"
         />
         <select
           value={form.categoria}
           onChange={(e) => setForm((p) => ({ ...p, categoria: e.target.value }))}
-          className="rounded-xl bg-[#171826] border border-white/10 px-3 py-2.5 text-sm"
+          className="min-h-[44px] rounded-xl bg-[#171826] border border-white/10 px-3 py-2.5 text-sm"
         >
           {categorias.map((categoria) => (
             <option key={categoria} value={categoria}>
@@ -124,7 +124,7 @@ function ClosetInteligente({ genero, estacion = 'verano' }) {
         <select
           value={form.ocasion}
           onChange={(e) => setForm((p) => ({ ...p, ocasion: e.target.value }))}
-          className="rounded-xl bg-[#171826] border border-white/10 px-3 py-2.5 text-sm"
+          className="min-h-[44px] rounded-xl bg-[#171826] border border-white/10 px-3 py-2.5 text-sm"
         >
           {OCASIONES.map((ocasion) => (
             <option key={ocasion} value={ocasion}>
@@ -132,7 +132,7 @@ function ClosetInteligente({ genero, estacion = 'verano' }) {
             </option>
           ))}
         </select>
-        <div className="flex items-center gap-2 rounded-xl bg-white/5 border border-white/10 px-3">
+        <div className="min-h-[44px] flex items-center gap-2 rounded-xl bg-white/5 border border-white/10 px-3">
           <span className="text-xs text-white/55">Color</span>
           <input
             type="color"
@@ -150,7 +150,7 @@ function ClosetInteligente({ genero, estacion = 'verano' }) {
         />
         <button
           type="submit"
-          className="md:col-span-2 min-h-[44px] rounded-xl bg-gradient-to-r from-emerald-500 to-cyan-500 hover:from-emerald-600 hover:to-cyan-600 text-sm font-medium inline-flex items-center justify-center gap-2"
+          className="md:col-span-2 w-full min-h-[44px] rounded-xl bg-gradient-to-r from-emerald-500 to-cyan-500 hover:from-emerald-600 hover:to-cyan-600 text-sm font-medium inline-flex items-center justify-center gap-2"
         >
           <Plus className="w-4 h-4" />
           Agregar prenda
@@ -191,18 +191,23 @@ function ClosetInteligente({ genero, estacion = 'verano' }) {
           </h4>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
             {prendasDemo.slice(0, 8).map((item) => (
-              <button
+              <div
                 key={item.id}
-                type="button"
-                onClick={() => handleAgregarDemo(item)}
-                className="text-left rounded-lg border border-white/15 bg-white/5 hover:bg-white/10 p-3"
+                className="text-left rounded-lg border border-white/15 bg-white/5 p-3"
               >
                 <div className="flex items-center gap-2 mb-1">
                   <span className="w-3.5 h-3.5 rounded-full border border-white/25" style={{ backgroundColor: item.hex }} />
                   <p className="text-sm text-white/90 line-clamp-1">{item.nombre}</p>
                 </div>
                 <p className="text-[11px] text-white/55 capitalize">{item.categoria} · {item.ocasion}</p>
-              </button>
+                <button
+                  type="button"
+                  onClick={() => handleAgregarDemo(item)}
+                  className="mt-2 w-full min-h-[38px] rounded-lg border border-emerald-400/25 bg-emerald-500/10 hover:bg-emerald-500/20 text-xs"
+                >
+                  Agregar al clóset
+                </button>
+              </div>
             ))}
           </div>
         </div>
@@ -213,7 +218,7 @@ function ClosetInteligente({ genero, estacion = 'verano' }) {
           value={outfitNombre}
           onChange={(e) => setOutfitNombre(e.target.value)}
           placeholder="Nombre del outfit (opcional)"
-          className="w-full rounded-lg bg-transparent border border-white/10 px-3 py-2 text-sm mb-3"
+          className="w-full min-h-[44px] rounded-lg bg-transparent border border-white/10 px-3 py-2 text-sm mb-3"
         />
         <button
           type="button"
