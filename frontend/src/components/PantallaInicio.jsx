@@ -264,8 +264,9 @@ function PantallaInicio({ onIniciar }) {
         initial="hidden"
         animate="visible"
       >
-        <div className="mb-5 sm:mb-7">
+        <div className="mb-5 sm:mb-7 text-center">
           <SectionHeader
+            center
             titulo="Qué analiza ColorMetría"
             descripcion="Un flujo integral para traducir rasgos faciales en recomendaciones prácticas y personalizadas."
           />
