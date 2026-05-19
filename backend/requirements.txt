@@ -30,7 +30,11 @@ starlette>=0.32.0
 SQLAlchemy>=2.0.0
 aiosqlite>=0.19.0
 
-torch
+# PyTorch (CPU-only) para segmentación BiSeNet de /hair-tryon.
+# En Render/Docker se debe forzar el index CPU: usar pip --index-url https://download.pytorch.org/whl/cpu
+# (ver backend/Dockerfile cuando se prepare la fase de deploy).
+torch==2.2.2
+torchvision==0.17.2
 
 # Opcional: atributos faciales (edad, género, emoción) vía DeepFace.
 # Aumenta peso y tiempo de arranque (TensorFlow). Sin instalar, la API funciona igual.

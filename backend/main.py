@@ -44,6 +44,7 @@ COOLDOWN_REINTENTO_SEGUNDOS = 60
 HAIR_TRYON_ENABLED = os.getenv("ENABLE_HAIR_TRYON", "0").strip().lower() in {"1", "true", "yes", "on"}
 MAX_IMAGEN_BYTES = int(os.getenv("HAIR_TRYON_MAX_IMAGE_BYTES", str(6 * 1024 * 1024)))
 MAX_LADO_TRYON = int(os.getenv("HAIR_TRYON_MAX_SIDE", "1024"))
+HAIR_TRYON_USE_BISENET = os.getenv("HAIR_TRYON_USE_BISENET", "1").strip().lower() in {"1", "true", "yes", "on"}
 ALLOWED_MIME_TYPES = {"image/jpeg", "image/png", "image/webp"}
 ALLOWED_BLEND_MODES = {"multiply", "overlay", "soft-light"}
 DEFAULT_BLEND_MODE = "multiply"
@@ -136,6 +137,64 @@ def _hex_a_rgb(hex_color: str) -> tuple[int, int, int]:
     except ValueError as err:
         raise ValueError("Color HEX inválido") from err
     return r, g, b
+
+
+def _generar_preview_tinte_cabello(
+    imagen_np: np.ndarray,
+    landmarks: Any,
+    color_hex: str,
+    intensidad: int,
+    blend_mode: str,
+) -> tuple[np.ndarray, str]:
+    """Intenta segmentar cabello con BiSeNet y recolorear; cae a elipse si falla.
+
+    Devuelve ``(imagen_resultado, modo)`` donde ``modo`` ∈ ``{"bisenet", "fallback_elipse"}``.
+    """
+    if HAIR_TRYON_USE_BISENET:
+        try:
+            # Import LAZY: si torch no estuviera disponible o el módulo fallara,
+            # lo capturamos y caemos al método heurístico actual.
+            from analizadores.hair_segmentation import (
+                aplicar_tinte_real,
+                obtener_segmentador_cabello,
+                refinar_mascara_cabello,
+                HairSegmentationError,
+            )
+
+            segmentador = obtener_segmentador_cabello()
+            mascara_bool = segmentador.segmentar_cabello(imagen_np)
+            cobertura = float(mascara_bool.mean())
+            if cobertura < 0.005:
+                raise HairSegmentationError(
+                    f"Máscara BiSeNet demasiado pequeña ({cobertura*100:.2f}%); "
+                    f"se descarta para no degradar el preview"
+                )
+            mascara_feather = refinar_mascara_cabello(
+                mascara_bool, kernel_px=5, feather_px=11
+            )
+            resultado = aplicar_tinte_real(
+                imagen_rgb=imagen_np,
+                mascara=mascara_feather,
+                color_hex=color_hex,
+                intensidad=intensidad,
+                blend_mode=blend_mode,
+            )
+            return resultado, "bisenet"
+        except Exception as exc:
+            print(
+                f"[HairTryOn] BiSeNet falló, usando fallback elíptico: {exc!r}",
+                flush=True,
+            )
+
+    print("[HairTryOn] Generando preview con máscara elíptica heurística", flush=True)
+    resultado = _simular_tinte_cabello(
+        imagen_np=imagen_np,
+        landmarks=landmarks,
+        color_hex=color_hex,
+        intensidad=intensidad,
+        blend_mode=blend_mode,
+    )
+    return resultado, "fallback_elipse"
 
 
 def _simular_tinte_cabello(
@@ -489,7 +548,7 @@ async def hair_tryon(
             raise HTTPException(status_code=422, detail="No se detectó rostro en la imagen")
         landmarks = deteccion["landmarks"]
 
-        imagen_resultado = _simular_tinte_cabello(
+        imagen_resultado, modo_usado = _generar_preview_tinte_cabello(
             imagen_np=imagen_np,
             landmarks=landmarks,
             color_hex=color_hex,
@@ -500,7 +559,7 @@ async def hair_tryon(
         return JSONResponse(
             content={
                 "exito": True,
-                "modo": "simulacion_visual",
+                "modo": modo_usado,
                 "parametros": {
                     "color_hex": color_hex,
                     "intensidad": int(intensidad),

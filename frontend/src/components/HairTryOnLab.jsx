@@ -65,7 +65,6 @@ function HairTryOnLab({ image, suggestedColors = [] }) {
   const [intensity, setIntensity] = useState(38)
   const [appliedConfig, setAppliedConfig] = useState(null)
   const [segmentationMode, setSegmentationMode] = useState('idle')
-  const [segmentationError, setSegmentationError] = useState('')
   const [usingFallback, setUsingFallback] = useState(false)
   const [manualOpen, setManualOpen] = useState(false)
   const [isAdvancedProcessing, setIsAdvancedProcessing] = useState(false)
@@ -74,7 +73,6 @@ function HairTryOnLab({ image, suggestedColors = [] }) {
     const { src, revoke } = resolveImageSource(image)
     setImageSrc(src)
     setLoadError('')
-    setSegmentationError('')
     setSegmentationMode(src ? 'loading-model' : 'idle')
     setUsingFallback(false)
     setBackendPreviewSrc(null)
@@ -139,20 +137,17 @@ function HairTryOnLab({ image, suggestedColors = [] }) {
             setUsingFallback(false)
             setSegmentationMode('ready')
           } catch (err) {
-            setSegmentationError('Modo simulación manual activado.')
             setUsingFallback(true)
             setSegmentationMode('fallback')
           }
         }
         img.onerror = () => {
-          setSegmentationError('Modo simulación manual activado.')
           setUsingFallback(true)
           setSegmentationMode('fallback')
         }
         img.src = imageSrc
       } catch (err) {
         if (cancelled) return
-        setSegmentationError('Modo simulación manual activado.')
         setUsingFallback(true)
         setSegmentationMode('fallback')
       }
@@ -175,7 +170,7 @@ function HairTryOnLab({ image, suggestedColors = [] }) {
       const ctx = canvas.getContext('2d')
       if (!ctx) return
 
-      const maxCanvasWidth = 620
+      const maxCanvasWidth = 720
       const scale = Math.min(1, maxCanvasWidth / img.width)
       const width = Math.max(1, Math.round(img.width * scale))
       const height = Math.max(1, Math.round(img.height * scale))
@@ -207,7 +202,6 @@ function HairTryOnLab({ image, suggestedColors = [] }) {
                 const my = Math.floor((y / height) * maskData.height)
                 const maskIndex = my * maskData.width + mx
                 const classId = maskData.buffer[maskIndex]
-                // Selfie segmenter: class 1 suele ser persona.
                 const alpha = classId === 1 ? Math.round(255 * intensityNorm) : 0
                 data[targetIndex] = r
                 data[targetIndex + 1] = g
@@ -259,7 +253,7 @@ function HairTryOnLab({ image, suggestedColors = [] }) {
     }
 
     img.onerror = () => {
-      setLoadError('No se pudo cargar la imagen para el laboratorio visual.')
+      setLoadError('No se pudo cargar la imagen para la prueba visual.')
     }
 
     img.src = renderSrc
@@ -286,7 +280,6 @@ function HairTryOnLab({ image, suggestedColors = [] }) {
     }
     setAppliedConfig(nextConfig)
     setLoadError('')
-    setSegmentationError('')
     setIsAdvancedProcessing(true)
 
     try {
@@ -330,7 +323,6 @@ function HairTryOnLab({ image, suggestedColors = [] }) {
       setBackendPreviewSrc(null)
       setUsingFallback(true)
       setSegmentationMode('fallback')
-      setSegmentationError('Modo simulación manual activado')
     } finally {
       setIsAdvancedProcessing(false)
     }
@@ -358,109 +350,117 @@ function HairTryOnLab({ image, suggestedColors = [] }) {
 
   if (!imageSrc) {
     return (
-      <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-5">
-        <p className="text-sm text-white/70 font-medium mb-2">Prueba visual de color de cabello</p>
-        <p className="text-sm text-white/55">
-          Carga o captura una imagen para activar la prueba visual de color de cabello.
+      <div className="rounded-2xl border border-white/[0.08] bg-white/[0.03] ring-1 ring-white/[0.04] p-6 sm:p-8 text-center">
+        <p className="text-sm text-white/65">
+          Carga o captura una foto para activar la prueba visual.
         </p>
       </div>
     )
   }
 
+  const showStatusRow =
+    usingFallback ||
+    isAdvancedProcessing ||
+    segmentationMode === 'loading-model' ||
+    segmentationMode === 'segmenting' ||
+    segmentationMode === 'ready'
+
   return (
-    <div className="rounded-2xl border border-white/[0.1] bg-gradient-to-br from-white/[0.06] via-white/[0.03] to-white/[0.04] p-4 sm:p-5 ring-1 ring-white/[0.06]">
-      <div className="mb-4 rounded-xl border border-white/10 bg-white/5 p-3">
-        <p className="text-sm font-medium text-white/90">Simulación visual en pruebas</p>
-        <p className="text-xs text-white/60 mt-1">
-          El resultado puede variar según iluminación, cabello y fondo.
-        </p>
-      </div>
+    <div className="space-y-4">
+      {showStatusRow && (
+        <div className="flex flex-wrap gap-2 text-xs">
+          {segmentationMode === 'loading-model' && (
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-violet-300/25 bg-violet-500/10 text-violet-100">
+              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              Preparando vista
+            </span>
+          )}
+          {segmentationMode === 'segmenting' && (
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-cyan-300/25 bg-cyan-500/10 text-cyan-100">
+              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              Analizando cabello
+            </span>
+          )}
+          {isAdvancedProcessing && (
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-fuchsia-300/25 bg-fuchsia-500/10 text-fuchsia-100">
+              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              Aplicando tono
+            </span>
+          )}
+          {segmentationMode === 'ready' && !usingFallback && !isAdvancedProcessing && (
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-emerald-300/25 bg-emerald-500/10 text-emerald-100">
+              <CheckCircle2 className="w-3.5 h-3.5" />
+              Vista lista
+            </span>
+          )}
+          {usingFallback && (
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-amber-300/25 bg-amber-500/10 text-amber-100">
+              <ShieldAlert className="w-3.5 h-3.5" />
+              Modo simulación manual activado
+            </span>
+          )}
+        </div>
+      )}
 
       {loadError && (
-        <p className="text-sm text-red-300 mb-3">{loadError}</p>
-      )}
-      <div className="mb-3 flex flex-wrap gap-2 text-xs">
-        {segmentationMode === 'loading-model' && (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-violet-300/25 bg-violet-500/10 text-violet-100">
-            <Loader2 className="w-3.5 h-3.5 animate-spin" />
-            Cargando modelo
-          </span>
-        )}
-        {segmentationMode === 'segmenting' && (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-cyan-300/25 bg-cyan-500/10 text-cyan-100">
-            <Loader2 className="w-3.5 h-3.5 animate-spin" />
-            Segmentando imagen
-          </span>
-        )}
-        {isAdvancedProcessing && (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-fuchsia-300/25 bg-fuchsia-500/10 text-fuchsia-100">
-            <Loader2 className="w-3.5 h-3.5 animate-spin" />
-            Procesando con simulación avanzada
-          </span>
-        )}
-        {segmentationMode === 'ready' && !usingFallback && (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-emerald-300/25 bg-emerald-500/10 text-emerald-100">
-            <CheckCircle2 className="w-3.5 h-3.5" />
-            Vista lista
-          </span>
-        )}
-        {usingFallback && (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-amber-300/25 bg-amber-500/10 text-amber-100">
-            <ShieldAlert className="w-3.5 h-3.5" />
-            Modo simulación manual activado
-          </span>
-        )}
-      </div>
-      {segmentationError && (
-        <p className="text-xs text-amber-200/90 mb-3">
-          {segmentationError}
-        </p>
+        <p className="text-sm text-red-300">{loadError}</p>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-[1.08fr_0.92fr] gap-4">
-        <div className="rounded-xl border border-white/10 bg-black/20 p-2 overflow-hidden">
-          <div className="mx-auto w-full max-w-[620px]">
-            <canvas ref={canvasRef} className="w-full h-auto max-h-[500px] mx-auto block rounded-lg bg-black/30 object-contain" />
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-5">
+        <div className="lg:col-span-7 min-w-0">
+          <div className="rounded-2xl border border-white/[0.08] bg-black/30 ring-1 ring-white/[0.04] p-2 sm:p-3 overflow-hidden">
+            <div className="flex items-center justify-center w-full">
+              <canvas
+                ref={canvasRef}
+                className="w-full max-h-[520px] rounded-xl object-contain block bg-black/30"
+              />
+            </div>
           </div>
         </div>
 
-        <div className="space-y-4">
-          <div className="rounded-xl border border-white/10 bg-white/[0.03] p-3">
-            <p className="text-xs uppercase tracking-[0.18em] text-white/45 mb-2">Tono</p>
-            <div className="flex flex-wrap gap-2 mb-2">
+        <div className="lg:col-span-5 min-w-0 space-y-3">
+          <div className="rounded-xl border border-white/[0.08] bg-white/[0.03] ring-1 ring-white/[0.04] p-3 sm:p-4">
+            <p className="font-body text-[11px] uppercase tracking-[0.18em] text-white/45 mb-2">Tono</p>
+            <div className="flex flex-wrap gap-2 mb-3">
               {suggestedColors.map((item) => (
                 <button
                   key={item.id || item.hex}
                   type="button"
                   onClick={() => setSelectedColor(item.hex)}
-                  className={`w-8 h-8 rounded-full border-2 transition-all ${
-                    selectedColor === item.hex ? 'border-white scale-110' : 'border-white/20'
+                  className={`w-9 h-9 rounded-full border-2 shadow-sm transition-transform ${
+                    selectedColor === item.hex
+                      ? 'border-white scale-110 ring-2 ring-white/30 ring-offset-2 ring-offset-[#0e0e1a]'
+                      : 'border-white/20 hover:scale-105'
                   }`}
                   style={{ backgroundColor: item.hex }}
                   title={item.nombre || item.hex}
+                  aria-label={item.nombre || item.hex}
                 />
               ))}
             </div>
-            <input
-              type="color"
-              value={selectedColor}
-              onChange={(e) => setSelectedColor(e.target.value)}
-              className="w-full h-10 rounded-lg bg-transparent border border-white/10 p-1"
-            />
+            <label className="block">
+              <span className="sr-only">Selector de color</span>
+              <input
+                type="color"
+                value={selectedColor}
+                onChange={(e) => setSelectedColor(e.target.value)}
+                className="w-full h-10 rounded-lg bg-transparent border border-white/10 p-1 cursor-pointer"
+              />
+            </label>
           </div>
 
-          <div className="rounded-xl border border-white/10 bg-white/[0.03] p-3">
-            <p className="text-xs uppercase tracking-[0.18em] text-white/45 mb-2">Blend mode</p>
-            <div className="inline-flex w-full rounded-xl border border-white/10 bg-white/5 p-1 gap-1">
+          <div className="rounded-xl border border-white/[0.08] bg-white/[0.03] ring-1 ring-white/[0.04] p-3 sm:p-4">
+            <p className="font-body text-[11px] uppercase tracking-[0.18em] text-white/45 mb-2">Blend mode</p>
+            <div className="flex w-full rounded-xl border border-white/10 bg-white/5 p-1 gap-1">
               {BLEND_MODES.map((mode) => (
                 <button
                   key={mode}
                   type="button"
                   onClick={() => setBlendMode(mode)}
-                  className={`min-h-[40px] min-w-0 flex-1 px-2 text-xs rounded-lg border capitalize whitespace-nowrap ${
+                  className={`min-h-[40px] min-w-0 flex-1 px-2 text-xs rounded-lg border capitalize whitespace-nowrap transition-colors ${
                     blendMode === mode
                       ? 'border-violet-300/50 bg-violet-500/20 text-white'
-                      : 'border-white/10 bg-white/5 text-white/75'
+                      : 'border-transparent bg-transparent text-white/70 hover:text-white hover:bg-white/5'
                   }`}
                 >
                   {mode}
@@ -469,10 +469,10 @@ function HairTryOnLab({ image, suggestedColors = [] }) {
             </div>
           </div>
 
-          <div className="rounded-xl border border-white/10 bg-white/[0.03] p-3">
-            <div className="flex justify-between text-xs text-white/65 mb-1">
-              <span>Intensidad</span>
-              <span>{intensity}%</span>
+          <div className="rounded-xl border border-white/[0.08] bg-white/[0.03] ring-1 ring-white/[0.04] p-3 sm:p-4">
+            <div className="flex justify-between text-xs text-white/65 mb-2">
+              <span className="uppercase tracking-[0.18em] text-white/45">Intensidad</span>
+              <span className="text-white/80 font-medium">{intensity}%</span>
             </div>
             <input
               type="range"
@@ -480,43 +480,46 @@ function HairTryOnLab({ image, suggestedColors = [] }) {
               max={85}
               value={intensity}
               onChange={(e) => setIntensity(Number(e.target.value))}
-              className="w-full"
+              className="w-full accent-violet-400"
             />
           </div>
 
-          <div className="rounded-xl border border-white/10 bg-white/[0.03] overflow-hidden">
+          <div className="rounded-xl border border-white/[0.08] bg-white/[0.03] ring-1 ring-white/[0.04] overflow-hidden">
             <button
               type="button"
               onClick={() => setManualOpen((prev) => !prev)}
-              className="w-full min-h-[44px] px-3 py-2.5 border-b border-white/10 bg-white/[0.04] hover:bg-white/[0.08] inline-flex items-center justify-between text-sm"
+              className="w-full min-h-[44px] px-3 sm:px-4 py-2.5 bg-white/[0.02] hover:bg-white/[0.06] inline-flex items-center justify-between text-sm transition-colors"
+              aria-expanded={manualOpen}
             >
-              <span>Ajuste manual de máscara</span>
-              {manualOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+              <span className="text-white/85">Ajuste manual de máscara</span>
+              {manualOpen ? <ChevronUp className="w-4 h-4 text-white/60" /> : <ChevronDown className="w-4 h-4 text-white/60" />}
             </button>
             {manualOpen && (
-              <div className="p-3 space-y-2.5">
-                {usingFallback ? [
-                  ['x', draftMask.x, 10, 90],
-                  ['y', draftMask.y, 5, 55],
-                  ['width', draftMask.width, 20, 90],
-                  ['height', draftMask.height, 12, 60],
-                ].map(([key, value, min, max]) => (
-                  <label key={key} className="block">
-                    <div className="flex justify-between text-xs text-white/65 mb-1">
-                      <span className="capitalize">{key}</span>
-                      <span>{value}%</span>
-                    </div>
-                    <input
-                      type="range"
-                      min={min}
-                      max={max}
-                      value={value}
-                      onChange={(e) => handleMaskChange(key, e.target.value)}
-                      className="w-full"
-                    />
-                  </label>
-                )) : (
-                  <p className="text-xs text-white/55">
+              <div className="p-3 sm:p-4 border-t border-white/[0.06] space-y-3">
+                {usingFallback ? (
+                  [
+                    ['x', draftMask.x, 10, 90],
+                    ['y', draftMask.y, 5, 55],
+                    ['width', draftMask.width, 20, 90],
+                    ['height', draftMask.height, 12, 60],
+                  ].map(([key, value, min, max]) => (
+                    <label key={key} className="block">
+                      <div className="flex justify-between text-xs text-white/65 mb-1">
+                        <span className="capitalize">{key}</span>
+                        <span>{value}%</span>
+                      </div>
+                      <input
+                        type="range"
+                        min={min}
+                        max={max}
+                        value={value}
+                        onChange={(e) => handleMaskChange(key, e.target.value)}
+                        className="w-full accent-violet-400"
+                      />
+                    </label>
+                  ))
+                ) : (
+                  <p className="text-xs text-white/55 leading-relaxed">
                     Esta sección se activa cuando el modo de simulación manual está activo.
                   </p>
                 )}
@@ -524,33 +527,38 @@ function HairTryOnLab({ image, suggestedColors = [] }) {
             )}
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-2">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
             <motion.button
               type="button"
               onClick={handleApply}
               disabled={isAdvancedProcessing}
-              className="min-h-[44px] min-w-[150px] px-3 rounded-xl bg-gradient-to-r from-violet-500 to-fuchsia-500 text-sm font-medium inline-flex items-center justify-center gap-1.5 text-center whitespace-nowrap"
-              whileHover={{ scale: 1.01 }}
+              className="min-h-[44px] min-w-0 px-2 rounded-xl bg-gradient-to-r from-violet-500 to-fuchsia-500 text-sm font-medium inline-flex items-center justify-center gap-1.5 text-center disabled:opacity-70 disabled:cursor-not-allowed shadow-lg shadow-violet-500/20"
+              whileHover={!isAdvancedProcessing ? { scale: 1.02 } : {}}
+              whileTap={!isAdvancedProcessing ? { scale: 0.97 } : {}}
             >
-              {isAdvancedProcessing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Wand2 className="w-4 h-4" />}
-              {isAdvancedProcessing ? 'Procesando...' : 'Aplicar tono'}
+              {isAdvancedProcessing ? <Loader2 className="w-4 h-4 animate-spin flex-shrink-0" /> : <Wand2 className="w-4 h-4 flex-shrink-0" />}
+              <span className="truncate">{isAdvancedProcessing ? 'Procesando' : 'Aplicar tono'}</span>
             </motion.button>
-            <button
+            <motion.button
               type="button"
               onClick={handleReset}
-              className="min-h-[44px] min-w-[150px] px-3 rounded-xl border border-white/15 bg-white/5 text-sm inline-flex items-center justify-center gap-1.5 text-center whitespace-nowrap"
+              className="min-h-[44px] min-w-0 px-2 rounded-xl border border-white/15 bg-white/5 hover:bg-white/10 text-sm inline-flex items-center justify-center gap-1.5 text-center transition-colors"
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.97 }}
             >
-              <RotateCcw className="w-4 h-4" />
-              Restablecer
-            </button>
-            <button
+              <RotateCcw className="w-4 h-4 flex-shrink-0" />
+              <span className="truncate">Restablecer</span>
+            </motion.button>
+            <motion.button
               type="button"
               onClick={handleDownload}
-              className="min-h-[44px] min-w-[150px] px-3 rounded-xl border border-white/15 bg-white/5 text-sm inline-flex items-center justify-center gap-1.5 text-center whitespace-nowrap"
+              className="min-h-[44px] min-w-0 px-2 rounded-xl border border-white/15 bg-white/5 hover:bg-white/10 text-sm inline-flex items-center justify-center gap-1.5 text-center transition-colors"
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.97 }}
             >
-              <Download className="w-4 h-4" />
-              Descargar preview
-            </button>
+              <Download className="w-4 h-4 flex-shrink-0" />
+              <span className="truncate">Descargar</span>
+            </motion.button>
           </div>
         </div>
       </div>
