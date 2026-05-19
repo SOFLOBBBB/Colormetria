@@ -159,12 +159,12 @@ function GeneradorCabello({ imagen, estacion, genero: _genero }) {
           <Scissors className="w-6 h-6 sm:w-7 sm:h-7 text-white" />
         </div>
         <div className="min-w-0 flex-1">
-          <p className="font-body text-[11px] uppercase tracking-[0.18em] text-white/45 mb-1">Hair Studio IA</p>
+          <p className="font-body text-[11px] uppercase tracking-[0.18em] text-white/45 mb-1">Hair Studio</p>
           <h3 className="font-display text-xl sm:text-2xl font-semibold leading-tight">
-            Prueba visual de color de cabello
+            Simulación avanzada de cabello
           </h3>
           <p className="text-white/60 text-sm mt-1.5 max-w-2xl leading-relaxed">
-            Simulación en pruebas con segmentación visual. El resultado puede variar según iluminación, cabello y fondo.
+            Genera una vista previa de color y peinado con resultado visual realista.
           </p>
         </div>
         {imagenCapturada && !mostrarCamara && (
@@ -194,7 +194,13 @@ function GeneradorCabello({ imagen, estacion, genero: _genero }) {
       ) : !imagenCapturada ? (
         <EmptyState onOpenCamera={abrirCamara} />
       ) : (
-        <HairTryOnLab image={imagenCapturada} suggestedColors={datos.colores || []} />
+        <HairTryOnLab
+          image={imagenCapturada}
+          suggestedColors={datos.colores || []}
+          suggestedStyles={datos.estilos || []}
+          estacion={estacion}
+          genero={_genero}
+        />
       )}
 
       {/* CTA "Nueva foto" en móvil */}

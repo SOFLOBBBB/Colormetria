@@ -1,6 +1,7 @@
 """API de análisis de colorimetría: detección de rostro, análisis LAB y clasificación en estación."""
 
 import os
+import uuid
 
 os.environ.setdefault("MPLBACKEND", "Agg")
 
@@ -21,6 +22,8 @@ import json
 import threading
 import time
 import base64
+import urllib.error
+import urllib.request
 from datetime import datetime
 
 from database import obtener_db, crear_tablas, CRUDAnalisis, CRUDRecomendacion
@@ -42,12 +45,175 @@ _analizadores_error_timestamp: Optional[float] = None
 
 COOLDOWN_REINTENTO_SEGUNDOS = 60
 HAIR_TRYON_ENABLED = os.getenv("ENABLE_HAIR_TRYON", "0").strip().lower() in {"1", "true", "yes", "on"}
+ENABLE_GENERATIVE_HAIR_EDIT = (
+    os.getenv("ENABLE_GENERATIVE_HAIR_EDIT", os.getenv("ENABLE_OPENAI_HAIR_EDIT", "0"))
+    .strip()
+    .lower()
+    in {"1", "true", "yes", "on"}
+)
+HAIR_EDIT_PROVIDER = os.getenv("HAIR_EDIT_PROVIDER", "openai").strip().lower()
+HAIR_EDIT_API_KEY = os.getenv("HAIR_EDIT_API_KEY", os.getenv("OPENAI_API_KEY", "")).strip()
 MAX_IMAGEN_BYTES = int(os.getenv("HAIR_TRYON_MAX_IMAGE_BYTES", str(6 * 1024 * 1024)))
 MAX_LADO_TRYON = int(os.getenv("HAIR_TRYON_MAX_SIDE", "1024"))
 HAIR_TRYON_USE_BISENET = os.getenv("HAIR_TRYON_USE_BISENET", "1").strip().lower() in {"1", "true", "yes", "on"}
 ALLOWED_MIME_TYPES = {"image/jpeg", "image/png", "image/webp"}
 ALLOWED_BLEND_MODES = {"multiply", "overlay", "soft-light"}
 DEFAULT_BLEND_MODE = "multiply"
+ALLOWED_HAIR_EDIT_MODES = {"color", "style", "color_style"}
+
+
+class GenerativeHairEditError(RuntimeError):
+    """Error controlado para el módulo generativo de cabello."""
+
+
+def _build_hair_edit_prompt(
+    modo: str,
+    color_hex: Optional[str],
+    color_nombre: Optional[str],
+    estilo_peinado: Optional[str],
+) -> str:
+    color_objetivo = (color_nombre or color_hex or "").strip()
+    estilo_objetivo = (estilo_peinado or "").strip()
+
+    if modo == "color":
+        if not color_objetivo:
+            raise ValueError("Debes indicar un color para el modo color")
+        return (
+            f"Edit the image to change only the hair color to {color_objetivo}. "
+            "Preserve the person's identity, face, skin tone, expression, pose, clothing, "
+            "background, and lighting. Keep the hairstyle and hair length the same. "
+            "Make the result photorealistic and natural."
+        )
+
+    if modo == "style":
+        if not estilo_objetivo:
+            raise ValueError("Debes indicar un peinado para el modo style")
+        return (
+            f"Edit the image to change only the hairstyle to {estilo_objetivo}. "
+            "Preserve the person's identity, face, skin tone, expression, pose, clothing, "
+            "background, and lighting. Keep the result photorealistic and natural."
+        )
+
+    if modo == "color_style":
+        if not color_objetivo:
+            raise ValueError("Debes indicar un color para el modo color_style")
+        if not estilo_objetivo:
+            raise ValueError("Debes indicar un peinado para el modo color_style")
+        return (
+            f"Edit the image to change only the hair to a {estilo_objetivo} hairstyle with "
+            f"{color_objetivo} color. Preserve identity, face, skin tone, expression, pose, "
+            "clothing, background, and lighting. Make the hair realistic and naturally blended."
+        )
+
+    raise ValueError("modo inválido. Usa: color, style o color_style")
+
+
+def _multipart_formdata_bytes(
+    fields: Dict[str, str],
+    file_field: str,
+    filename: str,
+    content_type: str,
+    file_bytes: bytes,
+):
+    boundary = f"----HairEditBoundary{uuid.uuid4().hex}"
+    body = bytearray()
+
+    for key, value in fields.items():
+        body.extend(f"--{boundary}\r\n".encode("utf-8"))
+        body.extend(f'Content-Disposition: form-data; name="{key}"\r\n\r\n'.encode("utf-8"))
+        body.extend(str(value).encode("utf-8"))
+        body.extend(b"\r\n")
+
+    body.extend(f"--{boundary}\r\n".encode("utf-8"))
+    body.extend(
+        (
+            f'Content-Disposition: form-data; name="{file_field}"; filename="{filename}"\r\n'
+            f"Content-Type: {content_type}\r\n\r\n"
+        ).encode("utf-8")
+    )
+    body.extend(file_bytes)
+    body.extend(b"\r\n")
+    body.extend(f"--{boundary}--\r\n".encode("utf-8"))
+    return bytes(body), boundary
+
+
+def _image_bytes_to_data_url_png(image_bytes: bytes) -> str:
+    imagen_pil = Image.open(io.BytesIO(image_bytes))
+    if imagen_pil.mode != "RGB":
+        imagen_pil = imagen_pil.convert("RGB")
+    buffer = io.BytesIO()
+    imagen_pil.save(buffer, format="PNG")
+    encoded = base64.b64encode(buffer.getvalue()).decode("utf-8")
+    return f"data:image/png;base64,{encoded}"
+
+
+def _call_openai_hair_edit(image_bytes: bytes, prompt: str, input_mime: str) -> str:
+    if not HAIR_EDIT_API_KEY:
+        raise GenerativeHairEditError("No hay clave configurada para la simulación avanzada.")
+
+    fields = {
+        "model": "gpt-image-1",
+        "prompt": prompt,
+        "size": "1024x1024",
+    }
+    payload, boundary = _multipart_formdata_bytes(
+        fields=fields,
+        file_field="image",
+        filename="input.png" if "png" in input_mime else "input.jpg",
+        content_type=input_mime or "image/png",
+        file_bytes=image_bytes,
+    )
+
+    request = urllib.request.Request(
+        url="https://api.openai.com/v1/images/edits",
+        data=payload,
+        method="POST",
+        headers={
+            "Authorization": f"Bearer {HAIR_EDIT_API_KEY}",
+            "Content-Type": f"multipart/form-data; boundary={boundary}",
+        },
+    )
+
+    try:
+        with urllib.request.urlopen(request, timeout=45) as resp:
+            raw = resp.read().decode("utf-8")
+    except urllib.error.HTTPError as e:
+        detail = ""
+        try:
+            raw_err = e.read().decode("utf-8")
+            err_json = json.loads(raw_err)
+            detail = (
+                err_json.get("error", {}).get("message")
+                or err_json.get("message")
+                or str(e)
+            )
+        except Exception:
+            detail = str(e)
+        raise GenerativeHairEditError(
+            f"No se pudo generar la vista previa en este momento. {detail}".strip()
+        ) from e
+    except Exception as e:
+        raise GenerativeHairEditError(
+            "No se pudo generar la vista previa en este momento. Intenta nuevamente."
+        ) from e
+
+    try:
+        data = json.loads(raw)
+        first = (data.get("data") or [{}])[0]
+        b64 = first.get("b64_json")
+        if b64:
+            return f"data:image/png;base64,{b64}"
+
+        image_url = first.get("url")
+        if image_url:
+            with urllib.request.urlopen(image_url, timeout=30) as img_resp:
+                return _image_bytes_to_data_url_png(img_resp.read())
+    except Exception as e:
+        raise GenerativeHairEditError(
+            "Respuesta inválida del motor de simulación avanzada."
+        ) from e
+
+    raise GenerativeHairEditError("No se pudo obtener la imagen generada.")
 
 
 def _obtener_analizadores() -> Dict[str, Any]:
@@ -341,7 +507,12 @@ async def root():
     return {
         "mensaje": "ColorMetría API v2.0",
         "version": "2.0.0",
-        "endpoints": {"/analizar": "POST", "/hair-tryon": "POST", "/health": "GET"},
+        "endpoints": {
+            "/analizar": "POST",
+            "/hair-tryon": "POST",
+            "/hair-edit": "POST",
+            "/health": "GET",
+        },
     }
 
 
@@ -574,6 +745,82 @@ async def hair_tryon(
         raise HTTPException(status_code=422, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"No se pudo generar preview: {e}")
+
+
+@app.post("/hair-edit")
+async def hair_edit(
+    archivo: UploadFile = File(...),
+    modo: str = Form(...),
+    color_hex: Optional[str] = Form(None),
+    color_nombre: Optional[str] = Form(None),
+    estilo_peinado: Optional[str] = Form(None),
+    estacion: Optional[str] = Form(None),
+    genero: Optional[str] = Form(None),
+    intensidad: Optional[int] = Form(None),
+):
+    """Edición generativa de cabello (color/estilo) con proveedor externo opcional."""
+    if not ENABLE_GENERATIVE_HAIR_EDIT:
+        raise HTTPException(
+            status_code=503,
+            detail="La simulación avanzada no está disponible en este momento.",
+        )
+    if not HAIR_EDIT_API_KEY:
+        raise HTTPException(
+            status_code=503,
+            detail="La simulación avanzada no está disponible en este momento.",
+        )
+    if HAIR_EDIT_PROVIDER != "openai":
+        raise HTTPException(
+            status_code=503,
+            detail="La simulación avanzada no está disponible en este momento.",
+        )
+
+    modo_normalizado = str(modo or "").strip().lower()
+    if modo_normalizado not in ALLOWED_HAIR_EDIT_MODES:
+        raise HTTPException(status_code=422, detail="modo inválido. Usa: color, style o color_style")
+
+    contenido = await archivo.read()
+    _validar_upload_imagen(archivo, contenido, MAX_IMAGEN_BYTES)
+    try:
+        prompt = _build_hair_edit_prompt(
+            modo=modo_normalizado,
+            color_hex=color_hex,
+            color_nombre=color_nombre,
+            estilo_peinado=estilo_peinado,
+        )
+        preview_data_url = _call_openai_hair_edit(
+            image_bytes=contenido,
+            prompt=prompt,
+            input_mime=(archivo.content_type or "image/png"),
+        )
+        return JSONResponse(
+            content={
+                "exito": True,
+                "modo": modo_normalizado,
+                "motor": "generative_hair_edit",
+                "preview_data_url": preview_data_url,
+                "prompt_usado": prompt,
+                "mensaje": "Resultado generado",
+                "meta": {
+                    "estacion": estacion,
+                    "genero": genero,
+                    "intensidad": intensidad,
+                },
+            }
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=422, detail=str(e))
+    except GenerativeHairEditError as e:
+        print(f"[HairEdit] Error proveedor generativo: {e}", flush=True)
+        raise HTTPException(status_code=503, detail=str(e))
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"[HairEdit] Error inesperado: {e!r}", flush=True)
+        raise HTTPException(
+            status_code=500,
+            detail="No se pudo completar la simulación avanzada.",
+        )
 
 
 if __name__ == "__main__":
