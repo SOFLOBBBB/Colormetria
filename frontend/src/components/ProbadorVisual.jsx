@@ -109,7 +109,10 @@ function ProbadorVisual({ genero, estacion = 'verano' }) {
     <motion.div className="glass-card glass-card--elevated ring-1 ring-white/[0.08] border border-white/[0.1] p-5 sm:p-6">
       <style>{`
         .studio-fondo {
-          background: radial-gradient(120% 90% at 50% 20%, rgba(87, 84, 160, 0.22), rgba(18, 20, 32, 0.85) 50%, rgba(11, 12, 20, 0.95));
+          background:
+            radial-gradient(ellipse 80% 55% at 50% 0%, rgba(139, 111, 158, 0.18) 0%, transparent 55%),
+            radial-gradient(ellipse 100% 80% at 50% 100%, rgba(0, 0, 0, 0.35) 0%, transparent 60%),
+            linear-gradient(180deg, #0e0d18 0%, #131125 50%, #0d0c1a 100%);
         }
         .avatar-stage {
           position: relative;
@@ -117,11 +120,20 @@ function ProbadorVisual({ genero, estacion = 'verano' }) {
           aspect-ratio: 280 / 480;
           margin: 0 auto;
           overflow: hidden;
-          border-radius: 1rem;
+          border-radius: 1.125rem;
           box-shadow:
-            0 0 0 1px rgba(255, 255, 255, 0.08),
-            0 24px 48px rgba(0, 0, 0, 0.45),
-            0 0 60px rgba(139, 92, 246, 0.12);
+            0 0 0 1px rgba(255, 255, 255, 0.07),
+            0 32px 64px rgba(0, 0, 0, 0.6),
+            0 0 80px rgba(139, 92, 246, 0.1);
+        }
+        /* Subtle vignette for depth */
+        .avatar-stage::after {
+          content: '';
+          position: absolute;
+          inset: 0;
+          pointer-events: none;
+          z-index: 20;
+          background: radial-gradient(ellipse 90% 90% at 50% 50%, transparent 55%, rgba(0,0,0,0.38) 100%);
         }
         .maniqui-shell {
           position: absolute;
@@ -137,9 +149,13 @@ function ProbadorVisual({ genero, estacion = 'verano' }) {
           width: 25%;
           height: 16%;
           border-radius: 45% 45% 50% 50%;
-          background: linear-gradient(145deg, #faf7ef 0%, #ebe4d6 58%, #ddd3c3 100%);
-          box-shadow: inset -6px -8px 16px rgba(126, 113, 93, 0.24), 0 12px 24px rgba(0, 0, 0, 0.28);
-          border: 1px solid rgba(255, 249, 237, 0.65);
+          background: linear-gradient(155deg, #fdf8f0 0%, #ede4d4 48%, #d9cebe 75%, #c8bba9 100%);
+          box-shadow:
+            inset -5px -8px 18px rgba(110, 95, 75, 0.28),
+            inset 4px 6px 14px rgba(255, 252, 240, 0.35),
+            0 8px 28px rgba(0, 0, 0, 0.35),
+            0 2px 6px rgba(0, 0, 0, 0.22);
+          border: 1px solid rgba(255, 250, 238, 0.5);
           z-index: 1;
         }
         .maniqui-cuello {
@@ -150,8 +166,8 @@ function ProbadorVisual({ genero, estacion = 'verano' }) {
           width: 11%;
           height: 4%;
           border-radius: 0 0 16px 16px;
-          background: linear-gradient(145deg, #f3ecde 0%, #ddd3c3 100%);
-          border: 1px solid rgba(255, 249, 237, 0.58);
+          background: linear-gradient(160deg, #eee6d6 0%, #d8cebe 100%);
+          border: 1px solid rgba(255, 249, 237, 0.45);
           z-index: 2;
         }
         .maniqui-torso {
@@ -159,9 +175,12 @@ function ProbadorVisual({ genero, estacion = 'verano' }) {
           top: 20%;
           left: 50%;
           transform: translateX(-50%);
-          background: linear-gradient(155deg, #f8f4ea 0%, #e9e2d4 55%, #d8cebe 100%);
-          border: 1px solid rgba(255, 249, 237, 0.6);
-          box-shadow: inset -8px -16px 20px rgba(112, 99, 81, 0.22), inset 8px 12px 20px rgba(255, 251, 241, 0.25), 0 18px 34px rgba(0, 0, 0, 0.28);
+          background: linear-gradient(155deg, #faf5ec 0%, #e8dfd0 40%, #d5cabb 72%, #c4b8a8 100%);
+          border: 1px solid rgba(255, 249, 237, 0.45);
+          box-shadow:
+            inset -10px -18px 28px rgba(100, 88, 70, 0.26),
+            inset 10px 14px 24px rgba(255, 252, 241, 0.22),
+            0 20px 44px rgba(0, 0, 0, 0.32);
           z-index: 3;
         }
         .silueta-femenina .maniqui-torso {
@@ -186,11 +205,12 @@ function ProbadorVisual({ genero, estacion = 'verano' }) {
           position: absolute;
           left: 50%;
           transform: translateX(-50%);
-          bottom: 6%;
-          width: 46%;
-          height: 4%;
+          bottom: 5.5%;
+          width: 42%;
+          height: 3.5%;
           border-radius: 50%;
-          background: radial-gradient(circle at center, rgba(255, 245, 220, 0.65), rgba(173, 164, 147, 0.24) 72%, transparent 75%);
+          background: radial-gradient(ellipse at center, rgba(180, 168, 148, 0.4) 0%, rgba(100, 90, 76, 0.1) 65%, transparent 80%);
+          filter: blur(4px);
           z-index: 4;
         }
         .clothing-stack {
@@ -234,18 +254,19 @@ function ProbadorVisual({ genero, estacion = 'verano' }) {
               <ClothingLayer layer="abrigo/blazer" item={equipped['abrigo/blazer']} />
             </motion.div>
           </motion.div>
-          <div className="absolute top-3 left-3 rounded-full border border-white/15 bg-black/25 px-3 py-1 max-w-[calc(100%-1.5rem)]">
-            <span className="text-[10px] uppercase tracking-[0.16em] text-white/65 truncate block">
+          <div className="absolute top-3 left-3 z-30 inline-flex items-center gap-1.5 rounded-full border border-white/[0.12] bg-black/45 backdrop-blur-sm px-2.5 py-1 max-w-[calc(100%-1.5rem)]">
+            <span className="w-1.5 h-1.5 rounded-full bg-violet-400 shrink-0" />
+            <span className="text-[9px] uppercase tracking-[0.18em] text-white/60 truncate">
               {sourceTag}
             </span>
           </div>
-          <p className="text-center text-xs text-white/50 mt-3 px-2">
-            Selecciona una capa en el panel para vestir el maniquí visualmente.
+          <p className="text-center text-[10px] text-white/38 mt-2.5 px-2">
+            Selecciona una capa para vestir el maniquí.
           </p>
         </div>
 
         <div className="rounded-2xl border border-white/10 bg-white/5 p-4 min-w-0">
-          <p className="text-xs uppercase tracking-[0.18em] text-white/45 mb-3">Panel de capas</p>
+          <p className="label-kicker mb-3">Capas de outfit</p>
           <div className="space-y-2">
             {visibleLayers.map((layer) => {
               const item = equipped[layer]

@@ -250,126 +250,155 @@ function GuiaPremiumPDF({ resultados, genero }) {
   return (
     <div className="glass-card glass-card--elevated ring-1 ring-white/[0.08] border border-white/[0.1] p-5 sm:p-6 guia-pdf-wrap">
       <style>{`
+        /* ── Screen: editorial preview card ── */
         .guia-pdf-wrap .pdf-guide {
-          background: linear-gradient(160deg, #f5f0e9 0%, #f2ede5 45%, #ebe4db 100%);
-          color: #1f1a17;
-          border-radius: 18px;
-          border: 1px solid rgba(95, 71, 51, 0.16);
-          padding: 32px;
-          font-family: 'Inter', system-ui, -apple-system, sans-serif;
+          background: linear-gradient(160deg, #f5f0e9 0%, #f0ebe1 50%, #e9e2d8 100%);
+          color: #1a1310;
+          border-radius: 16px;
+          border: 1px solid rgba(95, 71, 51, 0.14);
+          padding: 28px 30px;
+          font-family: 'Montserrat', system-ui, -apple-system, sans-serif;
+          font-size: 0.875rem;
+          line-height: 1.65;
         }
         .guia-pdf-wrap .pdf-cover h1,
-        .guia-pdf-wrap .pdf-section h2 {
-          font-family: 'Times New Roman', Georgia, serif;
-          letter-spacing: 0.01em;
+        .guia-pdf-wrap .pdf-section h2,
+        .guia-pdf-wrap .look-card h4 {
+          font-family: 'Playfair Display', 'Times New Roman', Georgia, serif;
+          letter-spacing: -0.01em;
         }
         .guia-pdf-wrap .pdf-cover {
-          padding: 20px 0 30px;
-          border-bottom: 1px solid rgba(61, 45, 30, 0.18);
-          margin-bottom: 24px;
+          padding: 0 0 28px;
+          border-bottom: 1px solid rgba(61, 45, 30, 0.16);
+          margin-bottom: 26px;
         }
         .guia-pdf-wrap .pdf-cover h1 {
-          font-size: 2.05rem;
+          font-size: 2.15rem;
           line-height: 1.1;
-          margin: 0.4rem 0;
+          margin: 6px 0 10px;
+          color: #1a1310;
         }
         .guia-pdf-wrap .pdf-kicker {
           text-transform: uppercase;
-          letter-spacing: 0.22em;
-          font-size: 0.7rem;
-          color: rgba(49, 35, 23, 0.72);
+          letter-spacing: 0.24em;
+          font-size: 0.65rem;
+          color: rgba(49, 35, 23, 0.6);
+          font-family: 'Montserrat', sans-serif;
+        }
+        .guia-pdf-wrap .pdf-tagline {
+          font-size: 0.88rem;
+          color: rgba(43, 31, 22, 0.72);
+          max-width: 500px;
+          line-height: 1.55;
+          margin-bottom: 14px;
         }
         .guia-pdf-wrap .pdf-meta-grid {
           display: grid;
-          grid-template-columns: repeat(2, minmax(0, 1fr));
-          gap: 8px 20px;
+          grid-template-columns: repeat(3, minmax(0, 1fr));
+          gap: 6px 16px;
           margin-top: 12px;
-          font-size: 0.92rem;
+          font-size: 0.82rem;
+          color: rgba(43, 31, 22, 0.82);
+          background: rgba(255, 252, 246, 0.5);
+          border: 1px solid rgba(73, 56, 41, 0.1);
+          border-radius: 10px;
+          padding: 10px 14px;
         }
         .guia-pdf-wrap .pdf-section {
-          margin-bottom: 24px;
+          margin-bottom: 22px;
           break-inside: avoid;
         }
         .guia-pdf-wrap .pdf-section h2 {
-          font-size: 1.42rem;
-          margin: 0 0 12px;
-          border-bottom: 1px solid rgba(59, 42, 28, 0.17);
-          padding-bottom: 6px;
+          font-size: 1.35rem;
+          margin: 0 0 14px;
+          color: #1a1310;
+          border-bottom: 1px solid rgba(59, 42, 28, 0.15);
+          padding-bottom: 7px;
         }
         .guia-pdf-wrap .pdf-section h3 {
-          font-size: 0.85rem;
-          letter-spacing: 0.12em;
+          font-size: 0.7rem;
+          letter-spacing: 0.18em;
           text-transform: uppercase;
           margin: 0 0 8px;
-          color: rgba(46, 33, 23, 0.7);
+          color: rgba(46, 33, 23, 0.6);
+          font-family: 'Montserrat', sans-serif;
         }
         .guia-pdf-wrap .chip-grid {
           display: grid;
           grid-template-columns: repeat(2, minmax(0, 1fr));
-          gap: 10px;
+          gap: 8px;
           margin-bottom: 12px;
         }
         .guia-pdf-wrap .color-chip {
           display: flex;
           align-items: center;
           gap: 10px;
-          background: rgba(255, 251, 245, 0.6);
-          border: 1px solid rgba(73, 56, 41, 0.14);
-          border-radius: 10px;
+          background: rgba(255, 251, 245, 0.7);
+          border: 1px solid rgba(73, 56, 41, 0.13);
+          border-radius: 9px;
           padding: 8px 10px;
           break-inside: avoid;
         }
         .guia-pdf-wrap .swatch {
-          width: 22px;
-          height: 22px;
+          width: 24px;
+          height: 24px;
           border-radius: 999px;
-          border: 1px solid rgba(30, 23, 18, 0.24);
+          border: 1px solid rgba(30, 23, 18, 0.22);
           flex-shrink: 0;
+          print-color-adjust: exact;
+          -webkit-print-color-adjust: exact;
         }
         .guia-pdf-wrap .chip-title {
           margin: 0;
           font-weight: 600;
-          font-size: 0.88rem;
+          font-size: 0.85rem;
+          color: #1a1310;
         }
         .guia-pdf-wrap .chip-sub {
           margin: 0;
-          font-size: 0.76rem;
-          color: rgba(45, 34, 25, 0.65);
+          font-size: 0.72rem;
+          color: rgba(45, 34, 25, 0.6);
+          font-family: 'Montserrat', sans-serif;
         }
         .guia-pdf-wrap .editorial-box {
-          background: rgba(255, 252, 247, 0.62);
-          border: 1px solid rgba(73, 56, 41, 0.14);
-          border-radius: 10px;
-          padding: 10px 12px;
-          margin-bottom: 10px;
+          background: rgba(255, 252, 247, 0.55);
+          border: 1px solid rgba(73, 56, 41, 0.12);
+          border-radius: 9px;
+          padding: 11px 13px;
+          margin-bottom: 9px;
           break-inside: avoid;
         }
         .guia-pdf-wrap .editorial-box ul {
-          margin: 8px 0 0;
-          padding-left: 18px;
+          margin: 7px 0 0;
+          padding-left: 16px;
+        }
+        .guia-pdf-wrap .editorial-box li {
+          margin-bottom: 3px;
+          color: rgba(43, 31, 22, 0.88);
         }
         .guia-pdf-wrap .look-card {
-          border: 1px solid rgba(73, 56, 41, 0.16);
-          border-radius: 11px;
-          padding: 12px;
-          background: rgba(255, 252, 246, 0.7);
-          margin-bottom: 12px;
+          border: 1px solid rgba(73, 56, 41, 0.14);
+          border-radius: 10px;
+          padding: 13px 14px;
+          background: rgba(255, 252, 246, 0.65);
+          margin-bottom: 10px;
           break-inside: avoid;
         }
         .guia-pdf-wrap .look-card h4 {
-          margin: 0 0 6px;
-          font-size: 1rem;
-          font-family: 'Times New Roman', Georgia, serif;
+          margin: 0 0 7px;
+          font-size: 1.05rem;
+          color: #1a1310;
         }
         .guia-pdf-wrap .pdf-columns {
           display: grid;
           grid-template-columns: 1fr 1fr;
-          gap: 12px;
+          gap: 10px;
         }
         .guia-pdf-wrap .pdf-small {
-          font-size: 0.84rem;
-          line-height: 1.5;
-          color: rgba(43, 31, 22, 0.9);
+          font-size: 0.845rem;
+          line-height: 1.6;
+          color: rgba(43, 31, 22, 0.88);
+          margin-bottom: 6px;
         }
         .guia-pdf-wrap .pdf-page-break-before {
           page-break-before: always;
@@ -385,96 +414,56 @@ function GuiaPremiumPDF({ resultados, genero }) {
             grid-template-columns: 1fr;
           }
         }
-        @media print {
-          body * {
-            visibility: hidden !important;
-          }
-          .guia-pdf-wrap,
-          .guia-pdf-wrap * {
-            visibility: visible !important;
-          }
-          .guia-pdf-wrap {
-            position: fixed;
-            inset: 0;
-            width: 100%;
-            margin: 0 !important;
-            padding: 0 !important;
-            background: #f5f0e9 !important;
-            border: 0 !important;
-            box-shadow: none !important;
-            z-index: 9999;
-          }
-          .guia-pdf-wrap .pdf-guide {
-            border: 0 !important;
-            border-radius: 0 !important;
-            background: #f5f0e9 !important;
-            min-height: 100%;
-            margin: 0 !important;
-            padding: 18mm 15mm !important;
-            box-shadow: none !important;
-          }
-          .guia-pdf-wrap button,
-          .guia-pdf-wrap .screen-only {
-            display: none !important;
-          }
-          .guia-pdf-wrap .pdf-section,
-          .guia-pdf-wrap .editorial-box,
-          .guia-pdf-wrap .look-card,
-          .guia-pdf-wrap .color-chip {
-            break-inside: avoid;
-            page-break-inside: avoid;
-          }
-          @page {
-            margin: 14mm;
-            size: A4;
-          }
-        }
       `}</style>
-      <div className="flex items-center gap-3 mb-5">
-        <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-amber-400/30 to-orange-400/20 border border-amber-300/25 flex items-center justify-center">
-          <FileText className="w-5 h-5 text-white/90" />
-        </div>
-        <div>
-          <h3 className="font-display text-lg sm:text-xl">Guía premium descargable</h3>
-          <p className="text-sm text-white/60">
-            MVP: usa impresión del navegador para exportar a PDF sin dependencias nuevas.
-          </p>
-        </div>
-      </div>
-
-      <div className="screen-only rounded-2xl border border-white/10 bg-white/5 p-4 mb-4">
-        <div className="flex items-start justify-between gap-3">
+      <div className="flex items-center justify-between gap-3 mb-5">
+        <div className="flex items-center gap-3">
+          <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-amber-400/30 to-orange-400/20 border border-amber-300/25 flex items-center justify-center shrink-0">
+            <FileText className="w-5 h-5 text-white/90" />
+          </div>
           <div>
-            <h4 className="font-display text-lg text-white/95">Guía premium</h4>
-            <p className="text-sm text-white/65 mt-1">
-              Resumen editorial personalizado de colorimetría, looks y armario esencial.
+            <h3 className="font-display text-lg sm:text-xl">Guía editorial personal</h3>
+            <p className="text-sm text-white/55">
+              Diagnóstico, paleta, looks y armario esencial en un documento descargable.
             </p>
           </div>
+        </div>
+        <div className="screen-only flex items-center gap-2 shrink-0">
           <button
             type="button"
             onClick={() => setExpandida((prev) => !prev)}
-            className="min-h-[44px] px-3 rounded-xl border border-white/15 bg-white/5 hover:bg-white/10 inline-flex items-center gap-1.5 text-sm"
+            className="min-h-[40px] px-3 rounded-xl border border-white/[0.12] bg-white/[0.05] hover:bg-white/[0.08] inline-flex items-center gap-1.5 text-sm text-white/80 transition-colors"
           >
-            {expandida ? 'Ocultar guía' : 'Desplegar guía'}
+            {expandida ? 'Contraer' : 'Desplegar'}
             {expandida ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
           </button>
+          {expandida && (
+            <button
+              type="button"
+              onClick={handleImprimir}
+              className="min-h-[40px] px-3 rounded-xl bg-gradient-to-r from-amber-500/80 to-orange-500/80 hover:from-amber-500 hover:to-orange-500 text-sm font-medium inline-flex items-center gap-1.5 transition-all"
+            >
+              <Download className="w-4 h-4" />
+              PDF
+            </button>
+          )}
         </div>
       </div>
 
       <div className={`pdf-guide ${expandida ? '' : 'hidden print:block'}`}>
         <header className="pdf-cover">
-          <p className="pdf-kicker">ColorMetría</p>
-          <h1>Guía personal de colorimetría</h1>
-          <p className="pdf-small">
-            Documento editorial personalizado para interpretar tu estación cromática y convertirla en decisiones de estilo diarias.
+          <p className="pdf-kicker">ColorMetría · Análisis personalizado</p>
+          <h1>Guía editorial de estilo personal</h1>
+          <p className="pdf-tagline">
+            Diagnóstico cromático completo con paleta, looks y armario esencial —
+            diseñado para convertir tu estación en decisiones de estilo diarias.
           </p>
           <div className="pdf-meta-grid">
-            <p><strong>Perfil:</strong> {usuario}</p>
-            <p><strong>Fecha:</strong> {hoy}</p>
             <p><strong>Estación:</strong> {resultados?.estacion?.nombre || 'N/D'}</p>
             <p><strong>Subtono:</strong> {subtono}</p>
             <p><strong>Contraste:</strong> {contraste}</p>
-            <p><strong>Género de estilo:</strong> {generoId}</p>
+            <p><strong>Confianza:</strong> {confianza}%</p>
+            <p><strong>Perfil:</strong> {generoId}</p>
+            <p><strong>Fecha:</strong> {hoy}</p>
           </div>
         </header>
 
@@ -657,24 +646,19 @@ function GuiaPremiumPDF({ resultados, genero }) {
         </footer>
       </div>
 
-      <div className="screen-only mt-4 rounded-2xl border border-white/10 bg-white/5 p-4 sm:p-5">
-        <p className="text-xs uppercase tracking-[0.18em] text-white/45 mb-3">Exportación PDF</p>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm text-white/75">
-          <p>La impresión está aislada a esta guía editorial.</p>
-          <p>No incluye dashboard, roadmap, badges ni módulos externos.</p>
-        </div>
-      </div>
-
       {expandida && (
-        <motion.button
-          type="button"
-          onClick={handleImprimir}
-          className="w-full min-h-[44px] rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-sm font-medium inline-flex items-center justify-center gap-2 mt-4"
-          whileHover={{ scale: 1.01 }}
-        >
-          <Download className="w-4 h-4" />
-          Descargar guía PDF
-        </motion.button>
+        <div className="screen-only mt-4 flex items-center justify-between gap-4 rounded-xl border border-white/[0.07] bg-white/[0.03] px-4 py-3">
+          <p className="text-xs text-white/45">El PDF incluye paleta, looks, joyería y armario esencial. No incluye dashboard ni módulos interactivos.</p>
+          <motion.button
+            type="button"
+            onClick={handleImprimir}
+            className="shrink-0 min-h-[40px] px-4 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-sm font-medium inline-flex items-center gap-2 transition-all"
+            whileHover={{ scale: 1.01 }}
+          >
+            <Download className="w-4 h-4" />
+            Exportar PDF
+          </motion.button>
+        </div>
       )}
     </div>
   )

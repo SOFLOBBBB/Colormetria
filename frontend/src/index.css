@@ -641,3 +641,164 @@
   border-top: 1px solid rgba(255, 255, 255, 0.08);
   box-shadow: 0 -12px 40px rgba(0, 0, 0, 0.25);
 }
+
+/* ── Studio frame for image/canvas containers ── */
+.studio-frame {
+  position: relative;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.07),
+    0 24px 56px rgba(0, 0, 0, 0.55),
+    0 0 80px rgba(139, 111, 158, 0.12) inset;
+  background: #0c0b14;
+}
+
+.studio-frame::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(ellipse 90% 60% at 50% 0%, rgba(255, 255, 255, 0.04) 0%, transparent 60%),
+    radial-gradient(ellipse 100% 40% at 50% 100%, rgba(0, 0, 0, 0.38) 0%, transparent 70%);
+}
+
+/* ── Section divider (no nested boxes) ── */
+.section-rule {
+  border: none;
+  border-top: 1px solid rgba(255, 255, 255, 0.07);
+  margin: 0;
+}
+
+/* ── Kicker label ── */
+.label-kicker {
+  font-size: 0.6875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  color: rgba(255, 255, 255, 0.42);
+  font-family: 'Montserrat', sans-serif;
+}
+
+/* ── Borderless info block (replaces nested card) ── */
+.info-block {
+  padding: 0.875rem 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+/* ================================================================
+   PRINT / PDF EDITORIAL MODE
+   ================================================================
+   Activated by window.print() from GuiaPremiumPDF.
+   Produces a warm beige editorial document that looks like a luxury
+   beauty guide: Vogue × Sephora × fashion lookbook.
+   All dark-mode UI, glassmorphism, and interactive elements are
+   completely hidden. Only the .guia-pdf-wrap subtree is shown.
+   ================================================================ */
+@media print {
+  /* 1. Hide everything on the page */
+  body > *,
+  #root > * {
+    display: none !important;
+  }
+
+  /* 2. Show ONLY the PDF guide — it renders as the full page */
+  .guia-pdf-wrap {
+    display: block !important;
+    position: fixed !important;
+    inset: 0 !important;
+    width: 100% !important;
+    height: auto !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #f3ede5 !important;
+    border: none !important;
+    box-shadow: none !important;
+    z-index: 9999 !important;
+    overflow: visible !important;
+  }
+
+  .guia-pdf-wrap * {
+    visibility: visible !important;
+    color: #1c1410 !important;
+  }
+
+  /* Hide interactive pieces within the guide */
+  .guia-pdf-wrap button,
+  .guia-pdf-wrap .screen-only {
+    display: none !important;
+  }
+
+  /* The .pdf-guide block becomes the page */
+  .guia-pdf-wrap .pdf-guide {
+    background: #f3ede5 !important;
+    border: none !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    margin: 0 !important;
+    padding: 18mm 16mm !important;
+    min-height: 100vh !important;
+    font-size: 11pt !important;
+    line-height: 1.6 !important;
+  }
+
+  /* Make the hidden guide visible when printing */
+  .guia-pdf-wrap .pdf-guide.hidden {
+    display: block !important;
+  }
+
+  /* Page setup */
+  @page {
+    size: A4 portrait;
+    margin: 14mm 12mm;
+  }
+
+  /* Break control */
+  .guia-pdf-wrap .pdf-section,
+  .guia-pdf-wrap .editorial-box,
+  .guia-pdf-wrap .look-card,
+  .guia-pdf-wrap .color-chip {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  .guia-pdf-wrap .pdf-page-break-before {
+    break-before: page;
+    page-break-before: always;
+  }
+
+  /* Reset any dark overrides */
+  .guia-pdf-wrap *,
+  .guia-pdf-wrap *::before,
+  .guia-pdf-wrap *::after {
+    background-color: transparent !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+    animation: none !important;
+    transition: none !important;
+  }
+
+  /* Restore specific backgrounds for color chips and blocks */
+  .guia-pdf-wrap .color-chip {
+    background: rgba(255, 252, 246, 0.8) !important;
+    border: 1px solid rgba(73, 56, 41, 0.16) !important;
+  }
+
+  .guia-pdf-wrap .editorial-box {
+    background: rgba(255, 251, 245, 0.6) !important;
+    border: 1px solid rgba(73, 56, 41, 0.14) !important;
+  }
+
+  .guia-pdf-wrap .look-card {
+    background: rgba(255, 252, 246, 0.7) !important;
+    border: 1px solid rgba(73, 56, 41, 0.15) !important;
+  }
+
+  /* Color swatches must keep their actual color */
+  .guia-pdf-wrap .swatch {
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+    border: 1px solid rgba(30, 23, 18, 0.24) !important;
+  }
+}

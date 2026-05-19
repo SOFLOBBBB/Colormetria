@@ -350,9 +350,9 @@ function HairTryOnLab({ image, suggestedColors = [] }) {
 
   if (!imageSrc) {
     return (
-      <div className="rounded-2xl border border-white/[0.08] bg-white/[0.03] ring-1 ring-white/[0.04] p-6 sm:p-8 text-center">
-        <p className="text-sm text-white/65">
-          Carga o captura una foto para activar la prueba visual.
+      <div className="rounded-2xl border border-white/[0.06] bg-white/[0.02] p-8 text-center">
+        <p className="text-sm text-white/50">
+          Carga o captura una foto para activar el AI Beauty Studio.
         </p>
       </div>
     )
@@ -366,71 +366,78 @@ function HairTryOnLab({ image, suggestedColors = [] }) {
     segmentationMode === 'ready'
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
       {showStatusRow && (
-        <div className="flex flex-wrap gap-2 text-xs">
+        <div className="flex flex-wrap gap-1.5 text-xs">
           {segmentationMode === 'loading-model' && (
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-violet-300/25 bg-violet-500/10 text-violet-100">
-              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-violet-300/20 bg-violet-500/[0.08] text-violet-200/80">
+              <Loader2 className="w-3 h-3 animate-spin" />
               Preparando vista
             </span>
           )}
           {segmentationMode === 'segmenting' && (
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-cyan-300/25 bg-cyan-500/10 text-cyan-100">
-              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-cyan-300/20 bg-cyan-500/[0.08] text-cyan-200/80">
+              <Loader2 className="w-3 h-3 animate-spin" />
               Analizando cabello
             </span>
           )}
           {isAdvancedProcessing && (
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-fuchsia-300/25 bg-fuchsia-500/10 text-fuchsia-100">
-              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-fuchsia-300/20 bg-fuchsia-500/[0.08] text-fuchsia-200/80">
+              <Loader2 className="w-3 h-3 animate-spin" />
               Aplicando tono
             </span>
           )}
           {segmentationMode === 'ready' && !usingFallback && !isAdvancedProcessing && (
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-emerald-300/25 bg-emerald-500/10 text-emerald-100">
-              <CheckCircle2 className="w-3.5 h-3.5" />
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-emerald-300/20 bg-emerald-500/[0.08] text-emerald-200/80">
+              <CheckCircle2 className="w-3 h-3" />
               Vista lista
             </span>
           )}
           {usingFallback && (
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-amber-300/25 bg-amber-500/10 text-amber-100">
-              <ShieldAlert className="w-3.5 h-3.5" />
-              Modo simulación manual activado
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-amber-300/20 bg-amber-500/[0.08] text-amber-200/80">
+              <ShieldAlert className="w-3 h-3" />
+              Simulación manual
             </span>
           )}
         </div>
       )}
 
       {loadError && (
-        <p className="text-sm text-red-300">{loadError}</p>
+        <p className="text-xs text-red-300/80">{loadError}</p>
       )}
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-5">
+        {/* ── AI Beauty Studio canvas ── */}
         <div className="lg:col-span-7 min-w-0">
-          <div className="rounded-2xl border border-white/[0.08] bg-black/30 ring-1 ring-white/[0.04] p-2 sm:p-3 overflow-hidden">
-            <div className="flex items-center justify-center w-full">
-              <canvas
-                ref={canvasRef}
-                className="w-full max-h-[520px] rounded-xl object-contain block bg-black/30"
-              />
+          <div className="studio-frame">
+            {/* Studio label */}
+            <div className="absolute top-3 left-3 z-10 inline-flex items-center gap-1.5 rounded-full border border-white/[0.12] bg-black/40 px-2.5 py-1 backdrop-blur-sm">
+              <span className="w-1.5 h-1.5 rounded-full bg-fuchsia-400 animate-pulse" />
+              <span className="text-[10px] uppercase tracking-[0.18em] text-white/70">AI Beauty Studio</span>
             </div>
+            <canvas
+              ref={canvasRef}
+              className="w-full max-h-[540px] object-contain block"
+              style={{ display: 'block' }}
+            />
           </div>
         </div>
 
-        <div className="lg:col-span-5 min-w-0 space-y-3">
-          <div className="rounded-xl border border-white/[0.08] bg-white/[0.03] ring-1 ring-white/[0.04] p-3 sm:p-4">
-            <p className="font-body text-[11px] uppercase tracking-[0.18em] text-white/45 mb-2">Tono</p>
+        {/* ── Controls panel ── */}
+        <div className="lg:col-span-5 min-w-0 space-y-2.5">
+          {/* Tone swatches */}
+          <div className="p-3 sm:p-4 rounded-xl border border-white/[0.07] bg-white/[0.03]">
+            <p className="label-kicker mb-2.5">Tono de color</p>
             <div className="flex flex-wrap gap-2 mb-3">
               {suggestedColors.map((item) => (
                 <button
                   key={item.id || item.hex}
                   type="button"
                   onClick={() => setSelectedColor(item.hex)}
-                  className={`w-9 h-9 rounded-full border-2 shadow-sm transition-transform ${
+                  className={`w-8 h-8 rounded-full border-2 transition-all ${
                     selectedColor === item.hex
-                      ? 'border-white scale-110 ring-2 ring-white/30 ring-offset-2 ring-offset-[#0e0e1a]'
-                      : 'border-white/20 hover:scale-105'
+                      ? 'border-white scale-110 ring-2 ring-white/25 ring-offset-1 ring-offset-[#0e0e1a]'
+                      : 'border-white/15 hover:scale-105 hover:border-white/35'
                   }`}
                   style={{ backgroundColor: item.hex }}
                   title={item.nombre || item.hex}
@@ -439,28 +446,29 @@ function HairTryOnLab({ image, suggestedColors = [] }) {
               ))}
             </div>
             <label className="block">
-              <span className="sr-only">Selector de color</span>
+              <span className="sr-only">Selector de color personalizado</span>
               <input
                 type="color"
                 value={selectedColor}
                 onChange={(e) => setSelectedColor(e.target.value)}
-                className="w-full h-10 rounded-lg bg-transparent border border-white/10 p-1 cursor-pointer"
+                className="w-full h-9 rounded-lg bg-transparent border border-white/[0.08] p-0.5 cursor-pointer"
               />
             </label>
           </div>
 
-          <div className="rounded-xl border border-white/[0.08] bg-white/[0.03] ring-1 ring-white/[0.04] p-3 sm:p-4">
-            <p className="font-body text-[11px] uppercase tracking-[0.18em] text-white/45 mb-2">Blend mode</p>
-            <div className="flex w-full rounded-xl border border-white/10 bg-white/5 p-1 gap-1">
+          {/* Blend mode segmented control */}
+          <div className="p-3 sm:p-4 rounded-xl border border-white/[0.07] bg-white/[0.03]">
+            <p className="label-kicker mb-2.5">Modo de mezcla</p>
+            <div className="flex w-full rounded-xl border border-white/[0.08] bg-white/[0.04] p-0.5 gap-0.5">
               {BLEND_MODES.map((mode) => (
                 <button
                   key={mode}
                   type="button"
                   onClick={() => setBlendMode(mode)}
-                  className={`min-h-[40px] min-w-0 flex-1 px-2 text-xs rounded-lg border capitalize whitespace-nowrap transition-colors ${
+                  className={`min-h-[36px] min-w-0 flex-1 px-2 text-[11px] rounded-[10px] capitalize whitespace-nowrap transition-all ${
                     blendMode === mode
-                      ? 'border-violet-300/50 bg-violet-500/20 text-white'
-                      : 'border-transparent bg-transparent text-white/70 hover:text-white hover:bg-white/5'
+                      ? 'bg-white/[0.12] border border-white/[0.18] text-white shadow-sm'
+                      : 'border-transparent text-white/55 hover:text-white/80 hover:bg-white/[0.04]'
                   }`}
                 >
                   {mode}
@@ -469,10 +477,11 @@ function HairTryOnLab({ image, suggestedColors = [] }) {
             </div>
           </div>
 
-          <div className="rounded-xl border border-white/[0.08] bg-white/[0.03] ring-1 ring-white/[0.04] p-3 sm:p-4">
-            <div className="flex justify-between text-xs text-white/65 mb-2">
-              <span className="uppercase tracking-[0.18em] text-white/45">Intensidad</span>
-              <span className="text-white/80 font-medium">{intensity}%</span>
+          {/* Intensity */}
+          <div className="p-3 sm:p-4 rounded-xl border border-white/[0.07] bg-white/[0.03]">
+            <div className="flex justify-between mb-2">
+              <span className="label-kicker">Intensidad</span>
+              <span className="text-xs text-white/70 font-medium tabular-nums">{intensity}%</span>
             </div>
             <input
               type="range"
@@ -484,29 +493,30 @@ function HairTryOnLab({ image, suggestedColors = [] }) {
             />
           </div>
 
-          <div className="rounded-xl border border-white/[0.08] bg-white/[0.03] ring-1 ring-white/[0.04] overflow-hidden">
-            <button
-              type="button"
-              onClick={() => setManualOpen((prev) => !prev)}
-              className="w-full min-h-[44px] px-3 sm:px-4 py-2.5 bg-white/[0.02] hover:bg-white/[0.06] inline-flex items-center justify-between text-sm transition-colors"
-              aria-expanded={manualOpen}
-            >
-              <span className="text-white/85">Ajuste manual de máscara</span>
-              {manualOpen ? <ChevronUp className="w-4 h-4 text-white/60" /> : <ChevronDown className="w-4 h-4 text-white/60" />}
-            </button>
-            {manualOpen && (
-              <div className="p-3 sm:p-4 border-t border-white/[0.06] space-y-3">
-                {usingFallback ? (
-                  [
+          {/* Manual mask (collapsible, only shown in fallback) */}
+          {usingFallback && (
+            <div className="rounded-xl border border-white/[0.07] overflow-hidden">
+              <button
+                type="button"
+                onClick={() => setManualOpen((prev) => !prev)}
+                className="w-full min-h-[40px] px-3 sm:px-4 py-2 bg-white/[0.02] hover:bg-white/[0.05] inline-flex items-center justify-between text-xs transition-colors text-white/65"
+                aria-expanded={manualOpen}
+              >
+                <span>Ajuste de máscara manual</span>
+                {manualOpen ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+              </button>
+              {manualOpen && (
+                <div className="p-3 sm:p-4 border-t border-white/[0.05] space-y-3">
+                  {[
                     ['x', draftMask.x, 10, 90],
                     ['y', draftMask.y, 5, 55],
                     ['width', draftMask.width, 20, 90],
                     ['height', draftMask.height, 12, 60],
                   ].map(([key, value, min, max]) => (
                     <label key={key} className="block">
-                      <div className="flex justify-between text-xs text-white/65 mb-1">
+                      <div className="flex justify-between text-xs text-white/55 mb-1">
                         <span className="capitalize">{key}</span>
-                        <span>{value}%</span>
+                        <span className="tabular-nums">{value}%</span>
                       </div>
                       <input
                         type="range"
@@ -517,47 +527,44 @@ function HairTryOnLab({ image, suggestedColors = [] }) {
                         className="w-full accent-violet-400"
                       />
                     </label>
-                  ))
-                ) : (
-                  <p className="text-xs text-white/55 leading-relaxed">
-                    Esta sección se activa cuando el modo de simulación manual está activo.
-                  </p>
-                )}
-              </div>
-            )}
-          </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+          {/* Action row */}
+          <div className="grid grid-cols-3 gap-2 pt-0.5">
             <motion.button
               type="button"
               onClick={handleApply}
               disabled={isAdvancedProcessing}
-              className="min-h-[44px] min-w-0 px-2 rounded-xl bg-gradient-to-r from-violet-500 to-fuchsia-500 text-sm font-medium inline-flex items-center justify-center gap-1.5 text-center disabled:opacity-70 disabled:cursor-not-allowed shadow-lg shadow-violet-500/20"
-              whileHover={!isAdvancedProcessing ? { scale: 1.02 } : {}}
-              whileTap={!isAdvancedProcessing ? { scale: 0.97 } : {}}
+              className="col-span-3 min-h-[44px] px-3 rounded-xl bg-gradient-to-r from-violet-500 to-fuchsia-500 text-sm font-medium inline-flex items-center justify-center gap-1.5 disabled:opacity-60 disabled:cursor-not-allowed shadow-lg shadow-violet-500/15"
+              whileHover={!isAdvancedProcessing ? { scale: 1.01 } : {}}
+              whileTap={!isAdvancedProcessing ? { scale: 0.98 } : {}}
             >
-              {isAdvancedProcessing ? <Loader2 className="w-4 h-4 animate-spin flex-shrink-0" /> : <Wand2 className="w-4 h-4 flex-shrink-0" />}
-              <span className="truncate">{isAdvancedProcessing ? 'Procesando' : 'Aplicar tono'}</span>
+              {isAdvancedProcessing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Wand2 className="w-4 h-4" />}
+              {isAdvancedProcessing ? 'Procesando…' : 'Aplicar tono'}
             </motion.button>
             <motion.button
               type="button"
               onClick={handleReset}
-              className="min-h-[44px] min-w-0 px-2 rounded-xl border border-white/15 bg-white/5 hover:bg-white/10 text-sm inline-flex items-center justify-center gap-1.5 text-center transition-colors"
+              className="col-span-1 min-h-[40px] px-2 rounded-xl border border-white/[0.1] bg-white/[0.04] hover:bg-white/[0.07] text-xs inline-flex items-center justify-center gap-1 transition-colors text-white/70"
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.97 }}
             >
-              <RotateCcw className="w-4 h-4 flex-shrink-0" />
-              <span className="truncate">Restablecer</span>
+              <RotateCcw className="w-3.5 h-3.5" />
+              Reset
             </motion.button>
             <motion.button
               type="button"
               onClick={handleDownload}
-              className="min-h-[44px] min-w-0 px-2 rounded-xl border border-white/15 bg-white/5 hover:bg-white/10 text-sm inline-flex items-center justify-center gap-1.5 text-center transition-colors"
+              className="col-span-2 min-h-[40px] px-2 rounded-xl border border-white/[0.1] bg-white/[0.04] hover:bg-white/[0.07] text-xs inline-flex items-center justify-center gap-1 transition-colors text-white/70"
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.97 }}
             >
-              <Download className="w-4 h-4 flex-shrink-0" />
-              <span className="truncate">Descargar</span>
+              <Download className="w-3.5 h-3.5" />
+              Descargar
             </motion.button>
           </div>
         </div>

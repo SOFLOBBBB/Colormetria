@@ -205,17 +205,17 @@ const ESTILOS_ESTACION = {
 /** Subcomponentes locales: solo presentación; no alteran datos ni contratos del padre. */
 function SectionHeader({ kicker, title, subtitle, icon: Icon }) {
   return (
-    <header className="text-center mb-8 md:mb-10 max-w-2xl mx-auto">
+    <header className="text-center mb-5 md:mb-7 max-w-2xl mx-auto">
       {Icon && (
-        <span className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-white/[0.06] border border-white/10 mb-4 text-white/70 shadow-[0_8px_24px_rgba(0,0,0,0.25)]">
-          <Icon className="w-5 h-5" aria-hidden />
+        <span className="inline-flex items-center justify-center w-9 h-9 rounded-full bg-white/[0.05] border border-white/[0.09] mb-3 text-white/60 shadow-[0_8px_24px_rgba(0,0,0,0.2)]">
+          <Icon className="w-4 h-4" aria-hidden />
         </span>
       )}
       {kicker && (
-        <p className="font-body text-[11px] sm:text-xs uppercase tracking-[0.22em] text-white/45 mb-2">{kicker}</p>
+        <p className="font-body text-[10px] uppercase tracking-[0.24em] text-white/40 mb-1.5">{kicker}</p>
       )}
       <h2 className="section-title mb-0">{title}</h2>
-      {subtitle && <p className="font-body text-white/58 text-sm sm:text-base mt-3 leading-relaxed">{subtitle}</p>}
+      {subtitle && <p className="font-body text-white/52 text-sm mt-2.5 leading-relaxed">{subtitle}</p>}
     </header>
   )
 }
@@ -244,7 +244,7 @@ function DetectedColorCard({ icon: Icon, label, hex, nombre }) {
 function MetricCard({ label, value, caption, accent, children }) {
   return (
     <div
-      className={`glass-card glass-card--elevated ring-1 ring-white/[0.08] text-center flex flex-col items-center justify-center min-h-[10rem] sm:min-h-[11rem] ${accent}`}
+      className={`glass-card glass-card--elevated ring-1 ring-white/[0.08] text-center flex flex-col items-center justify-center min-h-[8.5rem] sm:min-h-[9.5rem] ${accent}`}
     >
       <div className="mb-4 flex justify-center">{children}</div>
       <p className="font-body text-[11px] uppercase tracking-[0.16em] text-white/45 mb-1">{label}</p>
@@ -356,7 +356,7 @@ function ResultadosAnalisis({ resultados, imagen }) {
   }
 
   return (
-    <div className="section-container py-8 md:py-10">
+    <div className="section-container py-6 md:py-8">
       <motion.div variants={containerVariants} initial="hidden" animate="visible">
         <motion.div variants={itemVariants}>
           <SectionHeader
@@ -369,7 +369,7 @@ function ResultadosAnalisis({ resultados, imagen }) {
         {/* Tarjeta principal de estación */}
         <motion.div
           variants={itemVariants}
-          className={`glass-card glass-card--elevated max-w-4xl mx-auto mb-10 md:mb-12 bg-gradient-to-br ${estiloE.fondo} border ${estiloE.borde} ring-1 ${estiloE.ring}`}
+          className={`glass-card glass-card--elevated max-w-4xl mx-auto mb-6 md:mb-8 bg-gradient-to-br ${estiloE.fondo} border ${estiloE.borde} ring-1 ${estiloE.ring}`}
         >
           <div className="flex flex-col lg:flex-row items-stretch gap-8 lg:gap-10">
             {imagen && (
@@ -444,8 +444,8 @@ function ResultadosAnalisis({ resultados, imagen }) {
         </motion.div>
 
         {/* Colores detectados */}
-        <motion.div variants={itemVariants} className="max-w-4xl mx-auto mb-10 md:mb-12">
-          <p className="font-body text-[11px] uppercase tracking-[0.2em] text-white/45 text-center mb-4">Muestras detectadas</p>
+        <motion.div variants={itemVariants} className="max-w-4xl mx-auto mb-6 md:mb-8">
+          <p className="font-body text-[10px] uppercase tracking-[0.22em] text-white/38 text-center mb-3">Muestras detectadas</p>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-5">
             {colores.piel && (
               <DetectedColorCard
@@ -467,7 +467,7 @@ function ResultadosAnalisis({ resultados, imagen }) {
         </motion.div>
 
         {/* Subtono + contraste */}
-        <motion.div variants={itemVariants} className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-5 max-w-4xl mx-auto mb-10 md:mb-12">
+        <motion.div variants={itemVariants} className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-4xl mx-auto mb-6 md:mb-8">
           <MetricCard
             label="Subtono de piel"
             value={subtonoLabel}
@@ -487,9 +487,9 @@ function ResultadosAnalisis({ resultados, imagen }) {
         </motion.div>
 
         {/* Paleta de colores */}
-        <motion.div variants={itemVariants} className="max-w-4xl mx-auto space-y-6 md:space-y-8">
-          <div className="text-center mb-2">
-            <p className="font-body text-[11px] uppercase tracking-[0.22em] text-white/45 mb-2">Guía de estación</p>
+        <motion.div variants={itemVariants} className="max-w-4xl mx-auto space-y-4 md:space-y-5">
+          <div className="text-center mb-1">
+            <p className="font-body text-[10px] uppercase tracking-[0.24em] text-white/38 mb-1.5">Guía de estación</p>
             <h3 className="section-title text-2xl sm:text-3xl md:text-4xl mb-0 inline-flex flex-wrap items-center justify-center gap-2">
               <Palette className="inline w-7 h-7 sm:w-8 sm:h-8 opacity-90 shrink-0" aria-hidden />
               <span>Tu paleta de colores</span>

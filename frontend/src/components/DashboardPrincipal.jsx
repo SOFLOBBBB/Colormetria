@@ -206,31 +206,29 @@ function DashboardInsightList({ insights }) {
 function DashboardAchievements({ progreso, estacionLabel }) {
   const achievements = [
     { id: 'season', label: 'Estación detectada', icon: Trophy, unlocked: Boolean(estacionLabel) },
-    { id: 'progress', label: 'Perfil en progreso', icon: Gauge, unlocked: progreso >= 60 },
+    { id: 'progress', label: 'Perfil encaminado', icon: Gauge, unlocked: progreso >= 60 },
     { id: 'premium', label: 'Ruta premium activa', icon: Gem, unlocked: progreso >= 80 },
   ]
 
   return (
     <section className="glass-card glass-card--elevated ring-1 ring-white/[0.08]">
-      <h3 className="font-display text-lg text-white/95 mb-4">Logros y badges</h3>
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+      <h3 className="font-display text-lg text-white/95 mb-3">Hitos del perfil</h3>
+      <div className="flex flex-wrap gap-2">
         {achievements.map((a) => (
           <div
             key={a.id}
-            className={`rounded-xl border p-4 ${
+            className={`flex items-center gap-2 rounded-full px-3 py-1.5 border text-xs transition-colors ${
               a.unlocked
-                ? 'border-emerald-400/30 bg-emerald-500/[0.08]'
-                : 'border-white/10 bg-white/[0.03]'
+                ? 'border-emerald-400/30 bg-emerald-500/[0.08] text-emerald-200'
+                : 'border-white/[0.08] bg-white/[0.03] text-white/40'
             }`}
           >
-            <div className="flex items-center gap-2 mb-1">
-              <a.icon className={`w-4 h-4 ${a.unlocked ? 'text-emerald-300' : 'text-white/45'}`} aria-hidden />
-              <p className="text-sm font-medium text-white/90">{a.label}</p>
-            </div>
-            <p className="text-xs text-white/55">{a.unlocked ? 'Desbloqueado' : 'En curso'}</p>
+            <a.icon className="w-3.5 h-3.5 shrink-0" aria-hidden />
+            {a.label}
           </div>
         ))}
       </div>
+      <p className="text-xs text-white/45 mt-3">Perfil cromático completo al {progreso}%.</p>
     </section>
   )
 }
@@ -265,17 +263,17 @@ function DashboardPrincipal({ resultados, genero }) {
           : 'Crea una wishlist por estación y filtra primero por tonos compatibles.'
 
   return (
-    <div className="section-container py-8 md:py-10">
+    <div className="section-container py-6 md:py-8">
       <motion.div initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}>
-        <header className="text-center mb-8 md:mb-10">
-          <p className="font-body text-[11px] uppercase tracking-[0.22em] text-white/45 mb-2">Fashion-tech con IA</p>
+        <header className="text-center mb-5 md:mb-6">
+          <p className="font-body text-[10px] uppercase tracking-[0.24em] text-white/40 mb-1.5">Fashion-tech con IA</p>
           <h1 className="section-title text-2xl sm:text-3xl md:text-4xl inline-flex items-center gap-2 mb-0">
-            <Sparkles className={`w-6 h-6 ${estilo.acento}`} aria-hidden />
+            <Sparkles className={`w-5 h-5 ${estilo.acento}`} aria-hidden />
             Atelier de Estilo Personal
           </h1>
         </header>
 
-        <div className="max-w-5xl mx-auto space-y-6">
+        <div className="max-w-5xl mx-auto space-y-4">
           <DashboardHeroEstacion
             estacionLabel={estacionLabel}
             descripcion={descripcion}
@@ -291,7 +289,7 @@ function DashboardPrincipal({ resultados, genero }) {
             onGoNuevo={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
           />
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             <DashboardProgressCard progreso={progreso} />
             <DashboardQuickAccessGrid
               active={accesoActivo}
@@ -302,17 +300,19 @@ function DashboardPrincipal({ resultados, genero }) {
             />
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             <DashboardInsightList insights={insights} />
             <DashboardAchievements progreso={progreso} estacionLabel={estacionLabel} />
           </div>
 
-          <section className="glass-card glass-card--elevated ring-1 ring-white/[0.08] border border-white/[0.1] bg-gradient-to-r from-white/[0.06] to-white/[0.02]">
-            <h3 className="font-display text-lg text-white/95 mb-2 flex items-center gap-2">
-              <Target className="w-4 h-4 text-cyan-300" aria-hidden />
-              Próximo paso recomendado
-            </h3>
-            <p className="text-sm text-white/72 leading-relaxed">{proximoPaso}</p>
+          <section className="glass-card glass-card--elevated ring-1 ring-white/[0.06] bg-gradient-to-r from-white/[0.04] to-white/[0.02]">
+            <div className="flex items-start gap-3">
+              <Target className="w-4 h-4 mt-0.5 text-cyan-300 shrink-0" aria-hidden />
+              <div>
+                <p className="text-[10px] uppercase tracking-[0.18em] text-white/40 mb-1">Próximo paso</p>
+                <p className="text-sm text-white/70 leading-relaxed">{proximoPaso}</p>
+              </div>
+            </div>
           </section>
         </div>
       </motion.div>
