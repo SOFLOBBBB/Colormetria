@@ -22,8 +22,6 @@ import json
 import threading
 import time
 import base64
-import urllib.error
-import urllib.request
 from datetime import datetime
 
 from database import obtener_db, crear_tablas, CRUDAnalisis, CRUDRecomendacion
@@ -60,6 +58,7 @@ ALLOWED_MIME_TYPES = {"image/jpeg", "image/png", "image/webp"}
 ALLOWED_BLEND_MODES = {"multiply", "overlay", "soft-light"}
 DEFAULT_BLEND_MODE = "multiply"
 ALLOWED_HAIR_EDIT_MODES = {"color", "style", "color_style"}
+_generador_hair_edit_cache: Optional["GenerativeHairEditor"] = None
 
 
 class GenerativeHairEditError(RuntimeError):
@@ -147,73 +146,97 @@ def _image_bytes_to_data_url_png(image_bytes: bytes) -> str:
     return f"data:image/png;base64,{encoded}"
 
 
-def _call_openai_hair_edit(image_bytes: bytes, prompt: str, input_mime: str) -> str:
-    if not HAIR_EDIT_API_KEY:
-        raise GenerativeHairEditError("No hay clave configurada para la simulación avanzada.")
+class GenerativeHairEditor:
+    """Cliente lazy para edición generativa de cabello."""
 
-    fields = {
-        "model": "gpt-image-1",
-        "prompt": prompt,
-        "size": "1024x1024",
-    }
-    payload, boundary = _multipart_formdata_bytes(
-        fields=fields,
-        file_field="image",
-        filename="input.png" if "png" in input_mime else "input.jpg",
-        content_type=input_mime or "image/png",
-        file_bytes=image_bytes,
-    )
+    def __init__(self, provider: str, api_key: str):
+        if not api_key:
+            raise GenerativeHairEditError("No hay clave configurada para la simulación avanzada.")
+        if provider != "openai":
+            raise GenerativeHairEditError("Proveedor no soportado para simulación avanzada.")
+        print("[hair-edit] Inicializando generador...", flush=True)
+        import urllib.error as urllib_error
+        import urllib.request as urllib_request
 
-    request = urllib.request.Request(
-        url="https://api.openai.com/v1/images/edits",
-        data=payload,
-        method="POST",
-        headers={
-            "Authorization": f"Bearer {HAIR_EDIT_API_KEY}",
-            "Content-Type": f"multipart/form-data; boundary={boundary}",
-        },
-    )
+        self.provider = provider
+        self.api_key = api_key
+        self._urllib_error = urllib_error
+        self._urllib_request = urllib_request
 
-    try:
-        with urllib.request.urlopen(request, timeout=45) as resp:
-            raw = resp.read().decode("utf-8")
-    except urllib.error.HTTPError as e:
-        detail = ""
+    def procesar(self, image_bytes: bytes, prompt: str, input_mime: str) -> str:
+        fields = {
+            "model": "gpt-image-1",
+            "prompt": prompt,
+            "size": "1024x1024",
+        }
+        payload, boundary = _multipart_formdata_bytes(
+            fields=fields,
+            file_field="image",
+            filename="input.png" if "png" in input_mime else "input.jpg",
+            content_type=input_mime or "image/png",
+            file_bytes=image_bytes,
+        )
+
+        request = self._urllib_request.Request(
+            url="https://api.openai.com/v1/images/edits",
+            data=payload,
+            method="POST",
+            headers={
+                "Authorization": f"Bearer {self.api_key}",
+                "Content-Type": f"multipart/form-data; boundary={boundary}",
+            },
+        )
+
         try:
-            raw_err = e.read().decode("utf-8")
-            err_json = json.loads(raw_err)
-            detail = (
-                err_json.get("error", {}).get("message")
-                or err_json.get("message")
-                or str(e)
-            )
-        except Exception:
-            detail = str(e)
-        raise GenerativeHairEditError(
-            f"No se pudo generar la vista previa en este momento. {detail}".strip()
-        ) from e
-    except Exception as e:
-        raise GenerativeHairEditError(
-            "No se pudo generar la vista previa en este momento. Intenta nuevamente."
-        ) from e
+            with self._urllib_request.urlopen(request, timeout=90) as resp:
+                raw = resp.read().decode("utf-8")
+        except self._urllib_error.HTTPError as e:
+            detail = ""
+            try:
+                raw_err = e.read().decode("utf-8")
+                err_json = json.loads(raw_err)
+                detail = (
+                    err_json.get("error", {}).get("message")
+                    or err_json.get("message")
+                    or str(e)
+                )
+            except Exception:
+                detail = str(e)
+            raise GenerativeHairEditError(
+                f"No se pudo generar la vista previa en este momento. {detail}".strip()
+            ) from e
+        except Exception as e:
+            raise GenerativeHairEditError(
+                "No se pudo generar la vista previa en este momento. Intenta nuevamente."
+            ) from e
 
-    try:
-        data = json.loads(raw)
-        first = (data.get("data") or [{}])[0]
-        b64 = first.get("b64_json")
-        if b64:
-            return f"data:image/png;base64,{b64}"
+        try:
+            data = json.loads(raw)
+            first = (data.get("data") or [{}])[0]
+            b64 = first.get("b64_json")
+            if b64:
+                return f"data:image/png;base64,{b64}"
 
-        image_url = first.get("url")
-        if image_url:
-            with urllib.request.urlopen(image_url, timeout=30) as img_resp:
-                return _image_bytes_to_data_url_png(img_resp.read())
-    except Exception as e:
-        raise GenerativeHairEditError(
-            "Respuesta inválida del motor de simulación avanzada."
-        ) from e
+            image_url = first.get("url")
+            if image_url:
+                with self._urllib_request.urlopen(image_url, timeout=30) as img_resp:
+                    return _image_bytes_to_data_url_png(img_resp.read())
+        except Exception as e:
+            raise GenerativeHairEditError(
+                "Respuesta inválida del motor de simulación avanzada."
+            ) from e
 
-    raise GenerativeHairEditError("No se pudo obtener la imagen generada.")
+        raise GenerativeHairEditError("No se pudo obtener la imagen generada.")
+
+
+def get_generador_hair_edit() -> GenerativeHairEditor:
+    global _generador_hair_edit_cache
+    if _generador_hair_edit_cache is None:
+        _generador_hair_edit_cache = GenerativeHairEditor(
+            provider=HAIR_EDIT_PROVIDER,
+            api_key=HAIR_EDIT_API_KEY,
+        )
+    return _generador_hair_edit_cache
 
 
 def _obtener_analizadores() -> Dict[str, Any]:
@@ -764,12 +787,7 @@ async def hair_edit(
             status_code=503,
             detail="La simulación avanzada no está disponible en este momento.",
         )
-    if not HAIR_EDIT_API_KEY:
-        raise HTTPException(
-            status_code=503,
-            detail="La simulación avanzada no está disponible en este momento.",
-        )
-    if HAIR_EDIT_PROVIDER != "openai":
+    if not HAIR_EDIT_API_KEY or HAIR_EDIT_PROVIDER != "openai":
         raise HTTPException(
             status_code=503,
             detail="La simulación avanzada no está disponible en este momento.",
@@ -788,7 +806,8 @@ async def hair_edit(
             color_nombre=color_nombre,
             estilo_peinado=estilo_peinado,
         )
-        preview_data_url = _call_openai_hair_edit(
+        generador = get_generador_hair_edit()
+        preview_data_url = generador.procesar(
             image_bytes=contenido,
             prompt=prompt,
             input_mime=(archivo.content_type or "image/png"),
@@ -811,15 +830,18 @@ async def hair_edit(
     except ValueError as e:
         raise HTTPException(status_code=422, detail=str(e))
     except GenerativeHairEditError as e:
-        print(f"[HairEdit] Error proveedor generativo: {e}", flush=True)
-        raise HTTPException(status_code=503, detail=str(e))
+        print(f"[hair-edit] ERROR: {e}", flush=True)
+        raise HTTPException(
+            status_code=503,
+            detail="Simulación avanzada no disponible temporalmente",
+        )
     except HTTPException:
         raise
     except Exception as e:
-        print(f"[HairEdit] Error inesperado: {e!r}", flush=True)
+        print(f"[hair-edit] ERROR: {e!r}", flush=True)
         raise HTTPException(
-            status_code=500,
-            detail="No se pudo completar la simulación avanzada.",
+            status_code=503,
+            detail="Simulación avanzada no disponible temporalmente",
         )
 
 

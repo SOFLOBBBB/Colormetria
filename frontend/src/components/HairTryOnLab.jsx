@@ -121,7 +121,7 @@ function HairTryOnLab({
       formData.append('intensidad', '40')
 
       const controller = new AbortController()
-      const timeoutId = window.setTimeout(() => controller.abort(), 45000)
+      const timeoutId = window.setTimeout(() => controller.abort(), 120000)
       let response
       try {
         response = await fetch(apiUrl('/hair-edit'), {
@@ -134,7 +134,7 @@ function HairTryOnLab({
       }
 
       if (!response.ok) {
-        throw new Error('Servicio no disponible')
+        throw new Error(`Servicio no disponible (${response.status})`)
       }
       const data = await response.json()
       if (!data?.exito || !data?.preview_data_url) {
@@ -146,6 +146,7 @@ function HairTryOnLab({
     } catch (_err) {
       setAdvancedUnavailable(true)
       setStatusText('')
+      await handleLocalSimulation()
     } finally {
       setIsGenerating(false)
     }
