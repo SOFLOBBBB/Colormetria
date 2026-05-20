@@ -5,10 +5,11 @@
 
 import { useMemo } from 'react'
 import { motion } from 'framer-motion'
-import { Shirt, Store, ScanFace, BookOpenCheck, ArrowRight, Sparkles } from 'lucide-react'
+import { Shirt, Store, ScanFace, BookOpenCheck, ArrowRight, Sparkles, Wand2 } from 'lucide-react'
 import ClosetInteligente from './ClosetInteligente'
 import ProbadorVisual from './ProbadorVisual'
 import GuiaPremiumPDF from './GuiaPremiumPDF'
+import VirtualTryOnComingSoon from './VirtualTryOnComingSoon'
 
 const ACCENT_POR_ESTACION = {
   primavera: 'from-amber-400/25 via-orange-400/15 to-pink-400/10',
@@ -91,6 +92,16 @@ function SuitePremium({ resultados, genero }) {
       cta: 'Ir al diagnóstico completo',
       href: '#seccion-resultados-analisis',
     },
+    {
+      key: 'virtual-tryon',
+      titulo: 'Virtual Try-On',
+      icono: Wand2,
+      cuerpo:
+        'Prueba outfits con IA y análisis corporal real. Módulo premium en desarrollo — integración de segmentación de prenda y pose estimation.',
+      cta: 'Próximamente',
+      href: '#seccion-virtual-tryon',
+      comingSoon: true,
+    },
   ]
 
   return (
@@ -128,7 +139,11 @@ function SuitePremium({ resultados, genero }) {
               initial={{ opacity: 0, y: 14 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.06 * i, duration: 0.42, ease: [0.22, 1, 0.36, 1] }}
-              className="glass-card glass-card--elevated ring-1 ring-white/[0.08] border border-white/[0.1] flex flex-col p-5 sm:p-6 min-h-[200px] scroll-mt-24"
+              className={`glass-card glass-card--elevated ring-1 ring-white/[0.08] border flex flex-col p-5 sm:p-6 min-h-[200px] scroll-mt-24 ${
+                b.comingSoon
+                  ? 'border-violet-400/[0.2] bg-gradient-to-br from-violet-900/[0.12] to-fuchsia-900/[0.06]'
+                  : 'border-white/[0.1]'
+              }`}
             >
               <div className="flex items-start justify-between gap-3 mb-4">
                 <div
@@ -136,19 +151,37 @@ function SuitePremium({ resultados, genero }) {
                 >
                   <b.icono className="w-5 h-5 text-white/90" aria-hidden />
                 </div>
-                <span className="text-[10px] uppercase tracking-[0.18em] px-2.5 py-1 rounded-full bg-white/[0.07] border border-white/10 text-white/55">
-                  Vista previa
-                </span>
+                {b.comingSoon ? (
+                  <span className="inline-flex items-center gap-1 text-[10px] uppercase tracking-[0.16em] px-2.5 py-1 rounded-full border border-amber-400/30 bg-amber-500/[0.1] text-amber-200/90">
+                    <Sparkles className="w-3 h-3 shrink-0" aria-hidden />
+                    Coming Soon
+                  </span>
+                ) : (
+                  <span className="text-[10px] uppercase tracking-[0.18em] px-2.5 py-1 rounded-full bg-white/[0.07] border border-white/10 text-white/55">
+                    Vista previa
+                  </span>
+                )}
               </div>
               <h3 className="font-display text-lg sm:text-xl text-white/95 tracking-tight mb-2">{b.titulo}</h3>
               <p className="font-body text-sm text-white/65 leading-relaxed flex-1">{b.cuerpo}</p>
-              <a
-                href={b.href}
-                className="mt-5 inline-flex items-center justify-center gap-2 min-h-[var(--min-touch,44px)] rounded-xl border border-white/[0.14] bg-white/[0.06] hover:bg-white/[0.1] transition-colors text-white/90 text-sm font-medium px-4"
-              >
-                {b.cta}
-                <ArrowRight className="w-4 h-4 shrink-0 opacity-80" aria-hidden />
-              </a>
+              {b.comingSoon ? (
+                <button
+                  type="button"
+                  disabled
+                  className="mt-5 inline-flex items-center justify-center gap-2 min-h-[var(--min-touch,44px)] rounded-xl border border-white/[0.1] bg-white/[0.04] text-white/32 text-sm font-medium px-4 cursor-not-allowed select-none"
+                  aria-label="Virtual Try-On próximamente"
+                >
+                  {b.cta}
+                </button>
+              ) : (
+                <a
+                  href={b.href}
+                  className="mt-5 inline-flex items-center justify-center gap-2 min-h-[var(--min-touch,44px)] rounded-xl border border-white/[0.14] bg-white/[0.06] hover:bg-white/[0.1] transition-colors text-white/90 text-sm font-medium px-4"
+                >
+                  {b.cta}
+                  <ArrowRight className="w-4 h-4 shrink-0 opacity-80" aria-hidden />
+                </a>
+              )}
             </motion.article>
           ))}
         </div>
@@ -156,18 +189,8 @@ function SuitePremium({ resultados, genero }) {
         <section className="mt-8 md:mt-10 space-y-4">
           <ClosetInteligente genero={genero} estacion={estacionId} />
           <ProbadorVisual genero={genero} estacion={estacionId} />
+          <VirtualTryOnComingSoon />
           <GuiaPremiumPDF resultados={resultados} genero={genero} />
-          <div className="glass-card glass-card--elevated ring-1 ring-white/[0.08] border border-white/[0.1] p-5 sm:p-6">
-            <h3 className="font-display text-lg sm:text-xl mb-2">Recomendaciones faciales avanzadas (próximamente)</h3>
-            <p className="font-body text-white/62 text-sm leading-relaxed mb-3">
-              Esta sección prepara el roadmap premium sin simular detección no implementada.
-            </p>
-            <ul className="text-sm text-white/75 space-y-1.5">
-              <li>- Estructura facial: pómulos, frente, distancia entre ojos y simetría.</li>
-              <li>- Guía de armonía para contour, highlight y sombreado.</li>
-              <li>- Recomendaciones de maquillaje por geometría facial (cuando exista soporte de visión).</li>
-            </ul>
-          </div>
         </section>
       </motion.div>
     </div>

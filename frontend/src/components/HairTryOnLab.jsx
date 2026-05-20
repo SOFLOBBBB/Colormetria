@@ -8,8 +8,112 @@ import {
   Sparkles,
   Scissors,
   Palette,
+  Lock,
+  Zap,
 } from 'lucide-react'
 import { apiUrl } from '../config/api'
+
+/* ── Hair Studio AI — Coming Soon banner ─────────────────────────────── */
+function HairStudioAIBanner({ onTryLocal, isGenerating }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+      className="relative overflow-hidden rounded-xl border border-violet-400/[0.18] bg-white/[0.025]"
+    >
+      <style>{`
+        @keyframes hs-shimmer {
+          0%   { background-position: 220% 0; }
+          100% { background-position: -220% 0; }
+        }
+        .hs-shimmer {
+          background: linear-gradient(
+            90deg,
+            rgba(167,139,250,0.04) 0%,
+            rgba(167,139,250,0.13) 45%,
+            rgba(255,255,255,0.07) 55%,
+            rgba(167,139,250,0.04) 100%
+          );
+          background-size: 220% 100%;
+          animation: hs-shimmer 2.8s ease-in-out infinite;
+        }
+      `}</style>
+
+      {/* Glow blobs */}
+      <div className="absolute -top-10 -right-10 w-36 h-36 rounded-full bg-violet-600/[0.09] blur-2xl pointer-events-none" aria-hidden />
+      <div className="absolute -bottom-6 -left-6 w-24 h-24 rounded-full bg-fuchsia-700/[0.06] blur-2xl pointer-events-none" aria-hidden />
+
+      <div className="relative p-3.5">
+        {/* Header */}
+        <div className="flex items-center gap-2 mb-2.5">
+          <div
+            className="w-8 h-8 rounded-lg border border-violet-400/25 bg-gradient-to-br from-violet-500/30 to-fuchsia-500/20 flex items-center justify-center shrink-0"
+            style={{ boxShadow: '0 0 16px rgba(139,92,246,0.22)' }}
+          >
+            <Scissors className="w-4 h-4 text-violet-200" aria-hidden />
+          </div>
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <span className="font-display text-sm text-white/95 font-medium">Hair Studio AI</span>
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-semibold uppercase tracking-[0.14em] border border-amber-400/30 bg-amber-500/[0.1] text-amber-200/90">
+              <Sparkles className="w-2.5 h-2.5 shrink-0" aria-hidden />
+              Coming Soon
+            </span>
+          </div>
+        </div>
+
+        {/* Copy */}
+        <p className="text-[11px] text-white/55 leading-relaxed mb-1.5">
+          La simulación avanzada de peinados estará disponible próximamente.
+        </p>
+        <p className="text-[11px] text-white/38 leading-relaxed mb-3">
+          Estamos preparando una experiencia de transformación capilar más avanzada con
+          simulación visual mejorada y recomendaciones inteligentes.
+        </p>
+
+        {/* Shimmer bars */}
+        <div className="space-y-1.5 mb-3">
+          <div className="h-1 rounded-full hs-shimmer w-4/5" />
+          <div className="h-1 rounded-full hs-shimmer w-3/5" style={{ animationDelay: '0.5s' }} />
+        </div>
+
+        {/* CTAs */}
+        <div className="flex flex-col gap-2">
+          <button
+            type="button"
+            disabled
+            className="w-full min-h-[36px] px-3 rounded-lg border border-white/[0.09] bg-white/[0.03] text-white/28 text-xs font-medium inline-flex items-center justify-center gap-1.5 cursor-not-allowed select-none"
+            aria-label="Simulación avanzada próximamente disponible"
+          >
+            <Lock className="w-3 h-3 shrink-0" aria-hidden />
+            Próximamente
+          </button>
+          <motion.button
+            type="button"
+            onClick={onTryLocal}
+            disabled={isGenerating}
+            className="w-full min-h-[36px] px-3 rounded-lg border border-violet-400/25 bg-violet-500/[0.1] hover:bg-violet-500/[0.18] text-violet-100 text-xs font-medium inline-flex items-center justify-center gap-1.5 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            whileHover={!isGenerating ? { scale: 1.01 } : {}}
+            whileTap={!isGenerating ? { scale: 0.98 } : {}}
+          >
+            {isGenerating
+              ? <Loader2 className="w-3 h-3 animate-spin shrink-0" aria-hidden />
+              : <Zap className="w-3 h-3 shrink-0" aria-hidden />
+            }
+            Probar simulación básica
+          </motion.button>
+        </div>
+      </div>
+
+      {/* Bottom accent */}
+      <div
+        className="h-px"
+        style={{ background: 'linear-gradient(90deg, transparent, rgba(139,92,246,0.3), rgba(217,70,239,0.15), transparent)' }}
+        aria-hidden
+      />
+    </motion.div>
+  )
+}
 
 function resolveImageSource(image) {
   if (!image) return { src: null, revoke: null }
@@ -110,7 +214,7 @@ function HairTryOnLab({
       if (!GENERATIVE_HAIR_ENABLED) {
         setAdvancedUnavailable(true)
         await handleLocalSimulation({
-          statusMessage: 'Simulación avanzada no disponible. Se generó una vista previa local.',
+          statusMessage: 'Vista previa local generada',
         })
         return
       }
@@ -154,7 +258,7 @@ function HairTryOnLab({
       if (data?.advanced_available === false && data?.fallback_available) {
         setAdvancedUnavailable(true)
         await handleLocalSimulation({
-          statusMessage: 'Simulación avanzada no disponible. Se generó una vista previa local.',
+          statusMessage: 'Vista previa local generada',
         })
         return
       }
@@ -170,7 +274,7 @@ function HairTryOnLab({
     } catch (_err) {
       setAdvancedUnavailable(true)
       await handleLocalSimulation({
-        statusMessage: 'Simulación avanzada no disponible. Se generó una vista previa local.',
+        statusMessage: 'Vista previa local generada',
       })
     } finally {
       setIsGenerating(false)
@@ -222,9 +326,13 @@ function HairTryOnLab({
 
   if (!imageSrc) {
     return (
-      <div className="rounded-2xl border border-white/[0.06] bg-white/[0.02] p-8 text-center">
+      <div className="rounded-2xl border border-violet-400/[0.12] bg-white/[0.02] p-8 text-center space-y-2">
+        <div className="inline-flex items-center gap-1.5 text-violet-300/70 mb-1">
+          <Scissors className="w-4 h-4" aria-hidden />
+          <span className="text-xs font-medium uppercase tracking-[0.14em]">Hair Studio</span>
+        </div>
         <p className="text-sm text-white/50">
-          Carga o captura una foto para activar la simulación avanzada de cabello.
+          Carga o captura una foto para generar tu simulación de cabello.
         </p>
       </div>
     )
@@ -248,6 +356,14 @@ function HairTryOnLab({
         </div>
 
         <div className="lg:col-span-4 min-w-0 space-y-3">
+          {/* Coming Soon banner — shown when generative is off or unavailable */}
+          {(!GENERATIVE_HAIR_ENABLED || advancedUnavailable) && (
+            <HairStudioAIBanner
+              onTryLocal={() => handleLocalSimulation({ statusMessage: 'Vista previa local generada' })}
+              isGenerating={isGenerating}
+            />
+          )}
+
           <div className="p-3 sm:p-4 rounded-xl border border-white/[0.07] bg-white/[0.03]">
             <p className="label-kicker mb-2.5">Modo</p>
             <div className="grid grid-cols-3 gap-2">
@@ -322,17 +438,35 @@ function HairTryOnLab({
             </div>
           )}
 
-          <motion.button
-            type="button"
-            onClick={handleGenerate}
-            disabled={isGenerating}
-            className="w-full min-h-[44px] px-3 rounded-xl bg-gradient-to-r from-violet-500 to-fuchsia-500 text-sm font-medium inline-flex items-center justify-center gap-1.5 disabled:opacity-60 disabled:cursor-not-allowed shadow-lg shadow-violet-500/15"
-            whileHover={!isGenerating ? { scale: 1.01 } : {}}
-            whileTap={!isGenerating ? { scale: 0.98 } : {}}
-          >
-            {isGenerating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Wand2 className="w-4 h-4" />}
-            Generar vista previa
-          </motion.button>
+          {/* Primary CTA — dynamic based on generative availability */}
+          {GENERATIVE_HAIR_ENABLED && !advancedUnavailable ? (
+            <motion.button
+              type="button"
+              onClick={handleGenerate}
+              disabled={isGenerating}
+              className="w-full min-h-[44px] px-3 rounded-xl bg-gradient-to-r from-violet-500 to-fuchsia-500 text-sm font-medium inline-flex items-center justify-center gap-1.5 disabled:opacity-60 disabled:cursor-not-allowed shadow-lg shadow-violet-500/15"
+              whileHover={!isGenerating ? { scale: 1.01 } : {}}
+              whileTap={!isGenerating ? { scale: 0.98 } : {}}
+            >
+              {isGenerating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Wand2 className="w-4 h-4" />}
+              Generar vista previa
+            </motion.button>
+          ) : (
+            <motion.button
+              type="button"
+              onClick={() => handleLocalSimulation({ statusMessage: 'Vista previa local generada' })}
+              disabled={isGenerating}
+              className="w-full min-h-[44px] px-3 rounded-xl bg-gradient-to-r from-violet-600/70 to-fuchsia-600/60 border border-violet-400/20 text-sm font-medium inline-flex items-center justify-center gap-1.5 disabled:opacity-60 disabled:cursor-not-allowed"
+              whileHover={!isGenerating ? { scale: 1.01 } : {}}
+              whileTap={!isGenerating ? { scale: 0.98 } : {}}
+            >
+              {isGenerating
+                ? <Loader2 className="w-4 h-4 animate-spin" />
+                : <Zap className="w-4 h-4" />
+              }
+              Probar simulación básica
+            </motion.button>
+          )}
 
           <motion.button
             type="button"
@@ -362,36 +496,16 @@ function HairTryOnLab({
               Resultado generado
             </span>
           )}
-          {!isGenerating &&
-            statusText === 'Simulación avanzada no disponible. Se generó una vista previa local.' && (
-              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-cyan-300/20 bg-cyan-500/[0.08] text-cyan-200/90">
-                <CheckCircle2 className="w-3 h-3" />
-                Simulación avanzada no disponible. Se generó una vista previa local.
-              </span>
-            )}
+          {!isGenerating && statusText === 'Vista previa local generada' && (
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-violet-300/20 bg-violet-500/[0.08] text-violet-200/90">
+              <CheckCircle2 className="w-3 h-3" />
+              Vista previa lista
+            </span>
+          )}
         </div>
       )}
 
-      {advancedUnavailable && lastModeUsed !== 'local' && (
-        <div className="rounded-xl border border-amber-300/20 bg-amber-500/[0.08] p-4 space-y-2">
-          <p className="text-sm text-amber-100/90 font-medium">
-            La simulación avanzada no está disponible en este momento.
-          </p>
-          <p className="text-xs text-amber-100/70">
-            Modo simulación local disponible.
-          </p>
-          <button
-            type="button"
-            onClick={handleLocalSimulation}
-            disabled={isGenerating}
-            className="min-h-[38px] px-3 rounded-lg border border-amber-200/30 bg-amber-400/10 text-amber-100 text-xs hover:bg-amber-400/20 disabled:opacity-60 disabled:cursor-not-allowed"
-          >
-            Generar con simulación local
-          </button>
-        </div>
-      )}
-
-      <p className="text-xs text-white/55">
+      <p className="text-xs text-white/38">
         La simulación puede variar según iluminación y encuadre.
       </p>
     </div>
