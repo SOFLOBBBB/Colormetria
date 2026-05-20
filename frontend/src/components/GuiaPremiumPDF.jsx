@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { motion } from 'framer-motion'
-import { Download, FileText, ChevronDown, ChevronUp } from 'lucide-react'
+import { Download, FileText, ChevronDown, ChevronUp, Loader2, AlertCircle } from 'lucide-react'
 import { getClosetOutfits } from '../utils/storageCloset'
 import { getBaseRecomendaciones, getLooksEditoriales } from '../data/recomendacionesEstilo'
 
@@ -229,8 +229,9 @@ function GuiaPremiumPDF({ resultados, genero }) {
   const looksEditoriales = useMemo(() => getLooksEditoriales(estacion, genero), [estacion, genero])
   const [outfitsGuardados, setOutfitsGuardados] = useState(() => getClosetOutfits().slice(0, 3))
   const [expandida, setExpandida] = useState(false)
+  const [pdfStatus, setPdfStatus] = useState({ state: 'idle', message: '' })
+  const guideRef = useRef(null)
   const generoId = genero === 'masculino' ? 'masculino' : 'femenino'
-  const usuario = 'Cliente ColorMetría'
   const hoy = formatDate(new Date())
   const confianza = Math.round((resultados?.estacion?.confianza || 0) * 100)
   const subtono = resultados?.features?.subtono || 'N/D'
@@ -243,9 +244,72 @@ function GuiaPremiumPDF({ resultados, genero }) {
     return () => window.removeEventListener('closet-updated', refresh)
   }, [])
 
-  const handleImprimir = () => {
-    window.print()
+  const handleExportarPDF = async () => {
+    if (pdfStatus.state === 'loading') return
+
+    /* Expandir la guía si está colapsada para que html2canvas pueda capturarla. */
+    if (!expandida) setExpandida(true)
+
+    setPdfStatus({ state: 'loading', message: 'Generando PDF...' })
+
+    try {
+      /* Esperar a que React aplique el cambio de estado y el DOM se renderice. */
+      await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)))
+
+      if (!guideRef.current) {
+        throw new Error('Contenedor de la guía no disponible.')
+      }
+
+      /* Imports dinámicos: evitan inflar el bundle inicial. */
+      const [{ default: html2canvas }, jsPDFModule] = await Promise.all([
+        import('html2canvas'),
+        import('jspdf'),
+      ])
+      const jsPDF = jsPDFModule.jsPDF || jsPDFModule.default
+
+      const node = guideRef.current
+      const canvas = await html2canvas(node, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: '#f6efe3',
+        windowWidth: node.scrollWidth,
+        windowHeight: node.scrollHeight,
+        logging: false,
+      })
+
+      const imgData = canvas.toDataURL('image/png')
+      const pdf = new jsPDF('p', 'mm', 'letter')
+      const pageWidth = pdf.internal.pageSize.getWidth()
+      const pageHeight = pdf.internal.pageSize.getHeight()
+      const imgWidth = pageWidth
+      const imgHeight = (canvas.height * imgWidth) / canvas.width
+
+      let heightLeft = imgHeight
+      let position = 0
+
+      pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight)
+      heightLeft -= pageHeight
+
+      while (heightLeft > 0) {
+        position = heightLeft - imgHeight
+        pdf.addPage()
+        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight)
+        heightLeft -= pageHeight
+      }
+
+      pdf.save('colormetria-guia-editorial.pdf')
+      setPdfStatus({ state: 'success', message: 'PDF descargado' })
+      window.setTimeout(() => setPdfStatus({ state: 'idle', message: '' }), 3500)
+    } catch (_err) {
+      setPdfStatus({
+        state: 'error',
+        message: 'No se pudo generar el PDF. Intenta nuevamente.',
+      })
+      window.setTimeout(() => setPdfStatus({ state: 'idle', message: '' }), 4500)
+    }
   }
+
+  const isGeneratingPdf = pdfStatus.state === 'loading'
 
   return (
     <div className="glass-card glass-card--elevated ring-1 ring-white/[0.08] border border-white/[0.1] p-5 sm:p-6 guia-pdf-wrap">
@@ -436,20 +500,22 @@ function GuiaPremiumPDF({ resultados, genero }) {
             {expandida ? 'Contraer' : 'Desplegar'}
             {expandida ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
           </button>
-          {expandida && (
-            <button
-              type="button"
-              onClick={handleImprimir}
-              className="min-h-[40px] px-3 rounded-xl bg-gradient-to-r from-amber-500/80 to-orange-500/80 hover:from-amber-500 hover:to-orange-500 text-sm font-medium inline-flex items-center gap-1.5 transition-all"
-            >
-              <Download className="w-4 h-4" />
-              PDF
-            </button>
-          )}
+          <button
+            type="button"
+            onClick={handleExportarPDF}
+            disabled={isGeneratingPdf}
+            className="min-h-[40px] px-3 rounded-xl bg-gradient-to-r from-amber-500/80 to-orange-500/80 hover:from-amber-500 hover:to-orange-500 text-sm font-medium inline-flex items-center gap-1.5 transition-all disabled:opacity-70 disabled:cursor-not-allowed"
+          >
+            {isGeneratingPdf ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
+            {isGeneratingPdf ? 'Generando PDF...' : 'PDF'}
+          </button>
         </div>
       </div>
 
-      <div className={`pdf-guide ${expandida ? '' : 'hidden print:block'}`}>
+      <div
+        ref={guideRef}
+        className={`pdf-guide ${expandida ? '' : 'hidden print:block'}`}
+      >
         <header className="pdf-cover">
           <p className="pdf-kicker">ColorMetría · Análisis personalizado</p>
           <h1>Guía editorial de estilo personal</h1>
@@ -647,17 +713,41 @@ function GuiaPremiumPDF({ resultados, genero }) {
       </div>
 
       {expandida && (
-        <div className="screen-only mt-4 flex items-center justify-between gap-4 rounded-xl border border-white/[0.07] bg-white/[0.03] px-4 py-3">
-          <p className="text-xs text-white/45">El PDF incluye paleta, looks, joyería y armario esencial. No incluye dashboard ni módulos interactivos.</p>
+        <div className="screen-only mt-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-white/[0.07] bg-white/[0.03] px-4 py-3">
+          <p className="text-xs text-white/45 max-w-md">El PDF incluye paleta, looks, joyería y armario esencial. No incluye dashboard ni módulos interactivos.</p>
           <motion.button
             type="button"
-            onClick={handleImprimir}
-            className="shrink-0 min-h-[40px] px-4 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-sm font-medium inline-flex items-center gap-2 transition-all"
-            whileHover={{ scale: 1.01 }}
+            onClick={handleExportarPDF}
+            disabled={isGeneratingPdf}
+            className="shrink-0 min-h-[40px] px-4 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-sm font-medium inline-flex items-center gap-2 transition-all disabled:opacity-70 disabled:cursor-not-allowed"
+            whileHover={!isGeneratingPdf ? { scale: 1.01 } : {}}
           >
-            <Download className="w-4 h-4" />
-            Exportar PDF
+            {isGeneratingPdf ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
+            {isGeneratingPdf ? 'Generando PDF...' : 'Exportar PDF'}
           </motion.button>
+        </div>
+      )}
+
+      {pdfStatus.state !== 'idle' && (
+        <div className="screen-only mt-3 flex flex-wrap gap-2 text-xs">
+          {pdfStatus.state === 'loading' && (
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-amber-300/25 bg-amber-500/[0.08] text-amber-100/90">
+              <Loader2 className="w-3 h-3 animate-spin" />
+              {pdfStatus.message}
+            </span>
+          )}
+          {pdfStatus.state === 'success' && (
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-emerald-300/20 bg-emerald-500/[0.08] text-emerald-200/90">
+              <Download className="w-3 h-3" />
+              {pdfStatus.message}
+            </span>
+          )}
+          {pdfStatus.state === 'error' && (
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-rose-300/25 bg-rose-500/[0.08] text-rose-200/90">
+              <AlertCircle className="w-3 h-3" />
+              {pdfStatus.message}
+            </span>
+          )}
         </div>
       )}
     </div>

@@ -11,6 +11,50 @@ import ProbadorVisual from './ProbadorVisual'
 import GuiaPremiumPDF from './GuiaPremiumPDF'
 import VirtualTryOnComingSoon from './VirtualTryOnComingSoon'
 
+const VIRTUAL_TRYON_ENABLED = ['1', 'true', 'yes', 'on'].includes(
+  String(import.meta.env.VITE_ENABLE_VIRTUAL_TRYON || '').toLowerCase(),
+)
+
+/* Wrapper that renders ProbadorVisual blurred + non-interactive behind the
+   Coming Soon overlay. Used when the virtual try-on module is not yet enabled. */
+function LockedVirtualTryOn({ genero, estacion }) {
+  return (
+    <div className="relative">
+      {/* Blurred / locked preview underneath */}
+      <div
+        aria-hidden="true"
+        tabIndex={-1}
+        className="select-none pointer-events-none"
+        style={{
+          filter: 'blur(7px) saturate(0.85) brightness(0.55)',
+          opacity: 0.55,
+          transform: 'scale(0.99)',
+          transformOrigin: 'center top',
+        }}
+      >
+        <ProbadorVisual genero={genero} estacion={estacion} />
+      </div>
+
+      {/* Dark/violet veil */}
+      <div
+        className="absolute inset-0 rounded-2xl pointer-events-none"
+        style={{
+          background:
+            'radial-gradient(ellipse 100% 80% at 50% 40%, rgba(48,28,82,0.55) 0%, rgba(12,8,22,0.78) 60%, rgba(12,8,22,0.86) 100%)',
+        }}
+        aria-hidden
+      />
+
+      {/* Overlay panel with Coming Soon treatment */}
+      <div className="absolute inset-0 flex items-center justify-center p-4 sm:p-6">
+        <div className="w-full max-w-xl">
+          <VirtualTryOnComingSoon />
+        </div>
+      </div>
+    </div>
+  )
+}
+
 const ACCENT_POR_ESTACION = {
   primavera: 'from-amber-400/25 via-orange-400/15 to-pink-400/10',
   verano: 'from-pink-400/25 via-purple-400/15 to-blue-400/10',
@@ -188,8 +232,14 @@ function SuitePremium({ resultados, genero }) {
 
         <section className="mt-8 md:mt-10 space-y-4">
           <ClosetInteligente genero={genero} estacion={estacionId} />
-          <ProbadorVisual genero={genero} estacion={estacionId} />
-          <VirtualTryOnComingSoon />
+          {VIRTUAL_TRYON_ENABLED ? (
+            <>
+              <ProbadorVisual genero={genero} estacion={estacionId} />
+              <VirtualTryOnComingSoon />
+            </>
+          ) : (
+            <LockedVirtualTryOn genero={genero} estacion={estacionId} />
+          )}
           <GuiaPremiumPDF resultados={resultados} genero={genero} />
         </section>
       </motion.div>
