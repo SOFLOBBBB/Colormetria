@@ -114,13 +114,32 @@ function App() {
       
     } catch (err) {
       let mensaje = err.message || 'Error al procesar la imagen. Por favor, intenta de nuevo.'
+      const rawMessage = String(err?.message || '').toLowerCase()
+      const isNetworkError =
+        err?.name === 'TypeError' ||
+        rawMessage.includes('failed to fetch') ||
+        rawMessage.includes('networkerror') ||
+        rawMessage.includes('load failed') ||
+        rawMessage.includes('network request failed')
+
       if (err.name === 'AbortError') {
-        mensaje = 'El servidor tarda mas de lo esperado. En la primera peticion, Render puede tardar hasta 2 minutos en activarse. Intente de nuevo.'
-      } else if (err.message?.includes('Failed to fetch') || err.message?.includes('NetworkError')) {
-        mensaje = 'No se pudo conectar con el servidor. Verifique su conexion o intente mas tarde.'
+        mensaje =
+          'El servidor está tardando más de lo esperado. En la primera petición puede tardar hasta 2 minutos en activarse. Intenta de nuevo.'
+      } else if (isNetworkError) {
+        mensaje =
+          'El servidor está despertando. Esto puede tardar hasta 2 minutos en la primera petición. Vuelve a intentar en unos segundos.'
       }
       setError(mensaje)
       setEstadoActual(ESTADOS.CAPTURA)
+    }
+  }
+
+  /**
+   * Reintenta el análisis con la última imagen capturada.
+   */
+  const reintentarAnalisis = () => {
+    if (imagenCapturada) {
+      procesarImagen(imagenCapturada)
     }
   }
   
@@ -182,10 +201,11 @@ function App() {
               exit={{ opacity: 0, y: -16, transition: transicionSalida }}
               transition={transicionVista}
             >
-              <CapturadorImagen 
-                onCaptura={procesarImagen} 
+              <CapturadorImagen
+                onCaptura={procesarImagen}
                 onVolver={reiniciarAnalisis}
                 error={error}
+                onReintentar={imagenCapturada ? reintentarAnalisis : null}
               />
             </motion.div>
           )}

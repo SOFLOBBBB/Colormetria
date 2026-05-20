@@ -3,15 +3,24 @@
  * Permite capturar imagen desde webcam o subir un archivo
  */
 
-import { useState, useRef, useCallback } from 'react'
+import { useState, useRef, useCallback, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import Webcam from 'react-webcam'
 import { useDropzone } from 'react-dropzone'
 import { Camera, Upload, RefreshCw, Check, ArrowLeft, AlertCircle, Lightbulb } from 'lucide-react'
+import { warmupBackend, isRemoteBackend } from '../config/api'
 
 const easePremium = [0.22, 1, 0.36, 1]
 
-function CapturadorImagen({ onCaptura, onVolver, error }) {
+function CapturadorImagen({ onCaptura, onVolver, error, onReintentar }) {
+  // Pre-warm del backend cuando el usuario entra al paso de captura para
+  // reducir el cold start de Render (free tier duerme tras ~15 min).
+  useEffect(() => {
+    if (isRemoteBackend()) {
+      warmupBackend()
+    }
+  }, [])
+
   const [modo, setModo] = useState('seleccion') // 'seleccion', 'camara', 'archivo'
   const [imagenPrevia, setImagenPrevia] = useState(null)
   const [camaraActiva, setCamaraActiva] = useState(false)
@@ -109,17 +118,31 @@ function CapturadorImagen({ onCaptura, onVolver, error }) {
         {/* Mensaje de error */}
         {error && (
           <motion.div
-            className="mb-6 sm:mb-8 rounded-[var(--radius-lg)] border border-red-400/35 bg-red-500/[0.12] ring-1 ring-red-500/25 backdrop-blur-sm px-4 py-3.5 sm:px-5 sm:py-4 flex items-start gap-3"
+            className="mb-6 sm:mb-8 rounded-[var(--radius-lg)] border border-red-400/35 bg-red-500/[0.12] ring-1 ring-red-500/25 backdrop-blur-sm px-4 py-3.5 sm:px-5 sm:py-4 flex flex-col sm:flex-row sm:items-start gap-3"
             initial={{ opacity: 0, y: -8 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.35, ease: easePremium }}
             role="alert"
           >
-            <AlertCircle className="w-5 h-5 text-red-300 flex-shrink-0 mt-0.5" aria-hidden />
-            <div className="min-w-0">
-              <p className="font-display text-sm font-semibold text-red-200">No se pudo completar el análisis</p>
-              <p className="text-sm text-red-100/85 leading-relaxed mt-1">{error}</p>
+            <div className="flex items-start gap-3 min-w-0 flex-1">
+              <AlertCircle className="w-5 h-5 text-red-300 flex-shrink-0 mt-0.5" aria-hidden />
+              <div className="min-w-0">
+                <p className="font-display text-sm font-semibold text-red-200">No se pudo completar el análisis</p>
+                <p className="text-sm text-red-100/85 leading-relaxed mt-1">{error}</p>
+              </div>
             </div>
+            {onReintentar && (
+              <motion.button
+                type="button"
+                onClick={onReintentar}
+                className="shrink-0 min-h-[var(--min-touch,40px)] px-4 rounded-xl border border-red-300/30 bg-red-400/[0.12] hover:bg-red-400/[0.22] text-red-100 text-sm font-medium inline-flex items-center justify-center gap-2 transition-colors self-stretch sm:self-start"
+                whileHover={{ scale: 1.01 }}
+                whileTap={{ scale: 0.98 }}
+              >
+                <RefreshCw className="w-4 h-4" aria-hidden />
+                Reintentar
+              </motion.button>
+            )}
           </motion.div>
         )}
 

@@ -87,84 +87,36 @@ class ClasificadorRobusto:
         chroma: str,
         median_l: float,
     ) -> Dict[str, Any]:
-        """Reglas: primavera/otoño (cálidos), verano/invierno (fríos); depth por L*."""
+        """Elige estación por score (argmax) — evita que la cascada de reglas
+        se quede atrapada en primavera por umbrales tempranos altos.
+
+        Mantiene la categoría ``depth`` por L* y devuelve la confianza
+        normalizada del score ganador respecto al total.
+        """
         depth = "light" if median_l > 70 else ("medium" if median_l > 45 else "dark")
-        
-        # Mapeo con prioridad
-        estacion = None
-        confianza = 0.0
-        
-        # Primavera: Warm + high chroma + light/medium
-        if subtono == "warm" and chroma in ["intenso", "medio"]:
-            if contraste in ["bajo", "medio"] and depth in ["light", "medium"]:
-                estacion = "primavera"
-                confianza = 0.85
-            elif depth == "light":
-                estacion = "primavera"
-                confianza = 0.70
-        
-        # Otoño: Warm + lower chroma + medium/high depth
-        if subtono == "warm" and chroma in ["suave", "medio"]:
-            if depth in ["medium", "dark"] or contraste in ["medio", "alto"]:
-                if not estacion or confianza < 0.75:
-                    estacion = "otono"
-                    confianza = 0.80
-                elif depth == "dark":
-                    estacion = "otono"
-                    confianza = 0.85
-        
-        # Invierno: Cool + high contrast + high chroma
-        if subtono == "cool" and contraste == "alto" and chroma in ["intenso", "medio"]:
-            if not estacion or confianza < 0.80:
-                estacion = "invierno"
-                confianza = 0.85
-            elif chroma == "intenso":
-                estacion = "invierno"
-                confianza = 0.90
-        
-        # Verano: Cool + low contrast + low/medium chroma
-        if subtono == "cool" and contraste in ["bajo", "medio"]:
-            if chroma in ["suave", "medio"]:
-                if not estacion or confianza < 0.80:
-                    estacion = "verano"
-                    confianza = 0.85
-                elif contraste == "bajo" and chroma == "suave":
-                    estacion = "verano"
-                    confianza = 0.90
-        
-        # Casos neutrales
-        if subtono == "neutral":
-            # Usar contraste y chroma para decidir
-            if contraste == "alto" and chroma == "intenso":
-                estacion = "invierno"
-                confianza = 0.65
-            elif contraste == "bajo" and chroma == "suave":
-                estacion = "verano"
-                confianza = 0.65
-            elif depth == "light" and chroma in ["intenso", "medio"]:
-                estacion = "primavera"
-                confianza = 0.60
-            elif depth == "dark":
-                estacion = "otono"
-                confianza = 0.60
-        
-        # Fallback: elegir por subtono dominante
-        if not estacion:
+
+        scores = self._calcular_probabilidades(subtono, contraste, chroma, median_l)
+        estacion = max(scores, key=scores.get)
+        confianza = float(scores[estacion])
+
+        if confianza < 0.30:
             if subtono == "warm":
                 estacion = "primavera" if depth == "light" else "otono"
+                confianza = 0.50
             elif subtono == "cool":
-                estacion = "verano" if contraste == "bajo" else "invierno"
+                estacion = "invierno" if contraste == "alto" else "verano"
+                confianza = 0.50
             else:
-                estacion = "verano"  # Default más común
-            confianza = 0.50
-        
+                estacion = "verano" if contraste == "bajo" else "otono"
+                confianza = 0.45
+
         return {
             "estacion": estacion,
-            "confianza": confianza,
+            "confianza": round(confianza, 4),
             "subtono_detectado": subtono,
             "contraste_detectado": contraste,
             "chroma_detectado": chroma,
-            "depth_detectado": depth
+            "depth_detectado": depth,
         }
     
     def _generar_explicacion(
@@ -209,53 +161,77 @@ class ClasificadorRobusto:
         chroma: str,
         median_l: float,
     ) -> Dict[str, float]:
-        """Scores por estación con reglas; normalizado a suma 1."""
+        """Scores por estación; normalizado a suma 1.
+
+        Rebalanceado para evitar el sesgo previo donde primavera acumulaba
+        contribuciones de varias condiciones simultáneas y siempre ganaba
+        para piel cálida con chroma medio. Cada estación recibe puntos sólo
+        en sus condiciones distintivas y la asignación es más selectiva.
+        """
         scores = {
             "primavera": 0.0,
             "verano": 0.0,
             "otono": 0.0,
-            "invierno": 0.0
+            "invierno": 0.0,
         }
-        
-        # Primavera
+
+        # ── Primavera: warm + light/medium + chroma medio/intenso + contraste bajo/medio
         if subtono == "warm":
-            scores["primavera"] += 0.4
-            scores["otono"] += 0.4
-        if chroma in ["intenso", "medio"] and median_l > 60:
-            scores["primavera"] += 0.3
-        if contraste in ["bajo", "medio"]:
-            scores["primavera"] += 0.2
-        
-        # Otoño
+            scores["primavera"] += 0.30
+        elif subtono == "neutral":
+            scores["primavera"] += 0.08
+        if median_l > 60 and chroma in ["intenso", "medio"]:
+            scores["primavera"] += 0.25
+        if contraste == "bajo":
+            scores["primavera"] += 0.15
+        elif contraste == "medio":
+            scores["primavera"] += 0.08
+
+        # ── Otoño: warm + medium/dark depth + chroma suave/medio + contraste medio/alto
         if subtono == "warm":
-            scores["otono"] += 0.3
-        if chroma in ["suave", "medio"] and median_l < 65:
-            scores["otono"] += 0.3
-        if contraste in ["medio", "alto"]:
-            scores["otono"] += 0.2
-        
-        # Invierno
+            scores["otono"] += 0.30
+        elif subtono == "neutral":
+            scores["otono"] += 0.08
+        if median_l < 60 and chroma in ["suave", "medio"]:
+            scores["otono"] += 0.25
+        elif median_l < 70 and chroma == "suave":
+            scores["otono"] += 0.15
+        if contraste == "medio":
+            scores["otono"] += 0.12
+        elif contraste == "alto":
+            scores["otono"] += 0.18
+
+        # ── Verano: cool + low/medium contrast + chroma suave/medio
         if subtono == "cool":
-            scores["invierno"] += 0.3
-            scores["verano"] += 0.3
-        if contraste == "alto" and chroma in ["intenso", "medio"]:
-            scores["invierno"] += 0.4
-        if chroma == "intenso":
-            scores["invierno"] += 0.2
-        
-        # Verano
-        if subtono == "cool":
-            scores["verano"] += 0.3
+            scores["verano"] += 0.30
+        elif subtono == "neutral":
+            scores["verano"] += 0.10
         if contraste in ["bajo", "medio"] and chroma in ["suave", "medio"]:
-            scores["verano"] += 0.4
-        if chroma == "suave":
-            scores["verano"] += 0.2
-        
-        # Normalizar a probabilidades
+            scores["verano"] += 0.25
+        if contraste == "bajo":
+            scores["verano"] += 0.10
+        if median_l > 55 and chroma == "suave":
+            scores["verano"] += 0.10
+
+        # ── Invierno: cool + high contrast + chroma intenso
+        if subtono == "cool":
+            scores["invierno"] += 0.30
+        elif subtono == "neutral":
+            scores["invierno"] += 0.08
+        if contraste == "alto":
+            scores["invierno"] += 0.25
+        elif contraste == "medio" and chroma == "intenso":
+            scores["invierno"] += 0.15
+        if chroma == "intenso":
+            scores["invierno"] += 0.18
+        if median_l < 60 and contraste in ["medio", "alto"]:
+            scores["invierno"] += 0.10
+
+        # Normalizar
         total = sum(scores.values())
         if total > 0:
             probabilidades = {k: v / total for k, v in scores.items()}
         else:
             probabilidades = {k: 0.25 for k in scores.keys()}
-        
+
         return probabilidades

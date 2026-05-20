@@ -43,3 +43,24 @@ export function isRemoteBackend() {
   const u = API_BASE_URL.toLowerCase()
   return !u.includes('localhost') && !u.includes('127.0.0.1')
 }
+
+/**
+ * Pre-warm del backend para reducir cold start de Render free tier.
+ * No bloquea: dispara un GET /health y descarta el resultado.
+ * Devuelve una promesa que siempre resuelve (no propaga errores de red).
+ */
+export function warmupBackend() {
+  try {
+    return fetch(apiUrl('/health'), {
+      method: 'GET',
+      mode: 'cors',
+      cache: 'no-store',
+      keepalive: true,
+    }).then(
+      () => true,
+      () => false,
+    )
+  } catch {
+    return Promise.resolve(false)
+  }
+}

@@ -254,23 +254,30 @@ class AnalizadorRobusto:
         }
     
     def _clasificar_subtono(self, median_a: float, median_b: float) -> str:
-        """Cool / warm / neutral según medianas a* y b* en LAB."""
-        # Cool: b* bajo/negativo, a* no muy alto
-        # Warm: b* alto (amarillo), a* moderado
-        if median_b < -5 and median_a < 10:
+        """Cool / warm / neutral según ángulo de matiz (hue angle) en LAB.
+
+        La piel humana casi siempre tiene b* > 8 (refleja amarillo), por lo
+        que usar un umbral simple sobre b* clasifica casi todo como ``warm``.
+        Aquí usamos el ángulo h* = atan2(b*, a*) en grados, que separa de
+        forma estable la dominancia amarillo-vs-rojo del subtono:
+
+        - h* > 65°  → amarillo dominante (warm)
+        - h* < 50°  → rojo dominante (cool)
+        - 50°–65°  → mezcla equilibrada (neutral)
+
+        Además se aplica un guard rail: si b* es extremadamente bajo
+        (piel con dominancia rosada/azulada inusual) se fuerza cool.
+        """
+        if median_b < 4:
             return "cool"
-        elif median_b > 8 and median_a > -5 and median_a < 15:
+
+        h_star = float(np.degrees(np.arctan2(median_b, max(median_a, 0.1))))
+
+        if h_star > 65.0:
             return "warm"
-        elif -5 <= median_b <= 8 and -5 <= median_a <= 15:
-            return "neutral"
-        else:
-            # Casos borderline: priorizar b*
-            if median_b > 5:
-                return "warm"
-            elif median_b < -3:
-                return "cool"
-            else:
-                return "neutral"
+        if h_star < 50.0:
+            return "cool"
+        return "neutral"
     
     def _clasificar_contraste(self, contraste_absoluto: float) -> str:
         """Bajo (<30), medio (30-60) o alto (>60) según diferencia de L*."""
