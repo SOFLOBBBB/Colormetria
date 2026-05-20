@@ -22,6 +22,7 @@ import json
 import threading
 import time
 import base64
+import cv2
 from datetime import datetime
 
 from database import obtener_db, crear_tablas, CRUDAnalisis, CRUDRecomendacion
@@ -42,7 +43,7 @@ _analizadores_error: Optional[str] = None
 _analizadores_error_timestamp: Optional[float] = None
 
 COOLDOWN_REINTENTO_SEGUNDOS = 60
-HAIR_TRYON_ENABLED = os.getenv("ENABLE_HAIR_TRYON", "0").strip().lower() in {"1", "true", "yes", "on"}
+HAIR_TRYON_ENABLED = os.getenv("ENABLE_HAIR_TRYON", "1").strip().lower() in {"1", "true", "yes", "on"}
 ENABLE_GENERATIVE_HAIR_EDIT = (
     os.getenv("ENABLE_GENERATIVE_HAIR_EDIT", os.getenv("ENABLE_OPENAI_HAIR_EDIT", "0"))
     .strip()
@@ -386,20 +387,27 @@ def _generar_preview_tinte_cabello(
     return resultado, "fallback_elipse"
 
 
-def _simular_tinte_cabello(
-    imagen_np: np.ndarray,
-    landmarks: Any,
-    color_hex: str,
-    intensidad: int,
-    blend_mode: str,
-) -> np.ndarray:
-    """Aplica una simulación simple de tinte sobre una máscara elíptica del área de cabello."""
-    alto, ancho = imagen_np.shape[:2]
-    rgb = np.array(_hex_a_rgb(color_hex), dtype=np.float32)
+def _respuesta_hair_edit_no_disponible(reason: str = "Generative provider unavailable") -> JSONResponse:
+    return JSONResponse(
+        content={
+            "exito": False,
+            "advanced_available": False,
+            "fallback_available": True,
+            "reason": reason,
+            "mensaje": "La simulacion avanzada no esta disponible. Puedes continuar con simulacion local.",
+        }
+    )
 
+
+def _mascara_heuristica_cabello_suave(
+    landmarks: Any,
+    alto: int,
+    ancho: int,
+) -> np.ndarray:
     puntos = np.array([(lm[0], lm[1]) for lm in landmarks], dtype=np.float32)
     if puntos.size == 0:
         raise ValueError("Landmarks inválidos")
+
     x_min = max(0, int(np.min(puntos[:, 0])))
     x_max = min(ancho - 1, int(np.max(puntos[:, 0])))
     y_min = max(0, int(np.min(puntos[:, 1])))
@@ -408,44 +416,72 @@ def _simular_tinte_cabello(
     rostro_h = max(1, y_max - y_min)
     rostro_w = max(1, x_max - x_min)
     cx = int((x_min + x_max) / 2)
-    cy = int(y_min - rostro_h * 0.15)
-    rx = int(rostro_w * 0.72)
-    ry = int(rostro_h * 0.56)
-    if rx < 6 or ry < 6:
-        raise ValueError("No se pudo construir máscara de cabello")
 
     yy, xx = np.ogrid[:alto, :ancho]
-    ellipse = ((xx - cx) / max(1, rx)) ** 2 + ((yy - cy) / max(1, ry)) ** 2 <= 1.0
-    solo_superior = yy <= y_min + int(rostro_h * 0.22)
-    mascara = ellipse & solo_superior
+
+    # Casquete superior (frente/corona) + laterales para cubrir cabello largo.
+    top_cy = int(y_min - rostro_h * 0.22)
+    top_rx = int(rostro_w * 0.82)
+    top_ry = int(rostro_h * 0.68)
+    top_cap = ((xx - cx) / max(1, top_rx)) ** 2 + ((yy - top_cy) / max(1, top_ry)) ** 2 <= 1.0
+    top_limit = yy <= y_min + int(rostro_h * 0.38)
+
+    lateral_y = int(y_min + rostro_h * 0.28)
+    lateral_rx = int(rostro_w * 0.72)
+    lateral_ry = int(rostro_h * 0.94)
+    side_left = (
+        ((xx - int(x_min - rostro_w * 0.20)) / max(1, lateral_rx)) ** 2
+        + ((yy - lateral_y) / max(1, lateral_ry)) ** 2
+        <= 1.0
+    )
+    side_right = (
+        ((xx - int(x_max + rostro_w * 0.20)) / max(1, lateral_rx)) ** 2
+        + ((yy - lateral_y) / max(1, lateral_ry)) ** 2
+        <= 1.0
+    )
+
+    face_core = (
+        ((xx - cx) / max(1, int(rostro_w * 0.56))) ** 2
+        + ((yy - int(y_min + rostro_h * 0.50)) / max(1, int(rostro_h * 0.64))) ** 2
+        <= 1.0
+    )
+    mascara = (top_cap & top_limit) | side_left | side_right
+    mascara = mascara & ~face_core
+
     if not np.any(mascara):
         raise ValueError("Máscara de cabello vacía")
 
-    base = imagen_np.astype(np.float32)
-    alpha = max(5, min(90, int(intensidad))) / 100.0
-    factor = np.clip(alpha, 0.05, 0.9)
+    # Bordes suaves para evitar efecto de "paint" duro.
+    mask_u8 = (mascara.astype(np.uint8) * 255)
+    kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5, 5))
+    mask_u8 = cv2.morphologyEx(mask_u8, cv2.MORPH_CLOSE, kernel)
+    mask_u8 = cv2.GaussianBlur(mask_u8.astype(np.float32), (15, 15), 0)
+    return np.clip(mask_u8 / 255.0, 0.0, 1.0)
 
-    if blend_mode == "overlay":
-        color_layer = np.broadcast_to(rgb, base.shape)
-        low = base <= 127.5
-        high = ~low
-        mezclado = np.empty_like(base)
-        mezclado[low] = (2.0 * base[low] * color_layer[low]) / 255.0
-        mezclado[high] = 255.0 - (2.0 * (255.0 - base[high]) * (255.0 - color_layer[high])) / 255.0
-        out = base * (1 - factor) + mezclado * factor
-    elif blend_mode == "soft-light":
-        color_n = rgb / 255.0
-        base_n = base / 255.0
-        blended = (1 - 2 * color_n) * (base_n ** 2) + 2 * color_n * base_n
-        out = (base_n * (1 - factor) + blended * factor) * 255.0
-    else:  # multiply
-        out = base.copy()
-        multiply = (base * rgb[None, None, :]) / 255.0
-        out = base * (1 - factor) + multiply * factor
 
-    resultado = base.copy()
-    resultado[mascara] = out[mascara]
-    return np.clip(resultado, 0, 255).astype(np.uint8)
+def _simular_tinte_cabello(
+    imagen_np: np.ndarray,
+    landmarks: Any,
+    color_hex: str,
+    intensidad: int,
+    blend_mode: str,
+) -> np.ndarray:
+    """Fallback local de tinte usando máscara heurística + recolor LAB."""
+    from analizadores.hair_segmentation import aplicar_tinte_real
+
+    alto, ancho = imagen_np.shape[:2]
+    mascara_suave = _mascara_heuristica_cabello_suave(
+        landmarks=landmarks,
+        alto=alto,
+        ancho=ancho,
+    )
+    return aplicar_tinte_real(
+        imagen_rgb=imagen_np,
+        mascara=mascara_suave,
+        color_hex=color_hex,
+        intensidad=intensidad,
+        blend_mode=blend_mode,
+    )
 
 
 def _np_to_data_url_png(imagen_np: np.ndarray) -> str:
@@ -782,20 +818,21 @@ async def hair_edit(
     intensidad: Optional[int] = Form(None),
 ):
     """Edición generativa de cabello (color/estilo) con proveedor externo opcional."""
-    if not ENABLE_GENERATIVE_HAIR_EDIT:
-        raise HTTPException(
-            status_code=503,
-            detail="La simulación avanzada no está disponible en este momento.",
-        )
-    if not HAIR_EDIT_API_KEY or HAIR_EDIT_PROVIDER != "openai":
-        raise HTTPException(
-            status_code=503,
-            detail="La simulación avanzada no está disponible en este momento.",
-        )
-
     modo_normalizado = str(modo or "").strip().lower()
     if modo_normalizado not in ALLOWED_HAIR_EDIT_MODES:
         raise HTTPException(status_code=422, detail="modo inválido. Usa: color, style o color_style")
+
+    if not ENABLE_GENERATIVE_HAIR_EDIT:
+        print("[hair-edit] Generative disabled, using local fallback", flush=True)
+        return _respuesta_hair_edit_no_disponible()
+    if not HAIR_EDIT_API_KEY:
+        print("[hair-edit] Provider unavailable: missing_api_key", flush=True)
+        print("[hair-edit] Generative disabled, using local fallback", flush=True)
+        return _respuesta_hair_edit_no_disponible()
+    if HAIR_EDIT_PROVIDER != "openai":
+        print(f"[hair-edit] Provider unavailable: unsupported_provider:{HAIR_EDIT_PROVIDER}", flush=True)
+        print("[hair-edit] Generative disabled, using local fallback", flush=True)
+        return _respuesta_hair_edit_no_disponible()
 
     contenido = await archivo.read()
     _validar_upload_imagen(archivo, contenido, MAX_IMAGEN_BYTES)
@@ -830,19 +867,15 @@ async def hair_edit(
     except ValueError as e:
         raise HTTPException(status_code=422, detail=str(e))
     except GenerativeHairEditError as e:
-        print(f"[hair-edit] ERROR: {e}", flush=True)
-        raise HTTPException(
-            status_code=503,
-            detail="Simulación avanzada no disponible temporalmente",
-        )
+        print(f"[hair-edit] Provider unavailable: {e}", flush=True)
+        print("[hair-edit] Generative disabled, using local fallback", flush=True)
+        return _respuesta_hair_edit_no_disponible()
     except HTTPException:
         raise
     except Exception as e:
-        print(f"[hair-edit] ERROR: {e!r}", flush=True)
-        raise HTTPException(
-            status_code=503,
-            detail="Simulación avanzada no disponible temporalmente",
-        )
+        print(f"[hair-edit] Provider unavailable: {e!r}", flush=True)
+        print("[hair-edit] Generative disabled, using local fallback", flush=True)
+        return _respuesta_hair_edit_no_disponible()
 
 
 if __name__ == "__main__":

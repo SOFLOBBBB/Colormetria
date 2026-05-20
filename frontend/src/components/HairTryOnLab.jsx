@@ -26,6 +26,9 @@ const MODES = [
   { id: 'style', label: 'Peinado', icon: Scissors },
   { id: 'color_style', label: 'Color + Peinado', icon: Sparkles },
 ]
+const GENERATIVE_HAIR_ENABLED = ['1', 'true', 'yes', 'on'].includes(
+  String(import.meta.env.VITE_ENABLE_GENERATIVE_HAIR_EDIT || '').toLowerCase(),
+)
 
 function HairTryOnLab({
   image,
@@ -43,6 +46,7 @@ function HairTryOnLab({
   const [isGenerating, setIsGenerating] = useState(false)
   const [statusText, setStatusText] = useState('')
   const [advancedUnavailable, setAdvancedUnavailable] = useState(false)
+  const [lastModeUsed, setLastModeUsed] = useState(null)
 
   useEffect(() => {
     const { src, revoke } = resolveImageSource(image)
@@ -50,6 +54,7 @@ function HairTryOnLab({
     setPreviewSrc(null)
     setStatusText('')
     setAdvancedUnavailable(false)
+    setLastModeUsed(null)
 
     return () => {
       if (revoke) revoke()
@@ -99,9 +104,17 @@ function HairTryOnLab({
     if (!imageSrc) return
     setIsGenerating(true)
     setStatusText('Generando vista previa de cabello')
-    setAdvancedUnavailable(false)
+    setLastModeUsed(null)
 
     try {
+      if (!GENERATIVE_HAIR_ENABLED) {
+        setAdvancedUnavailable(true)
+        await handleLocalSimulation({
+          statusMessage: 'Simulación avanzada no disponible. Se generó una vista previa local.',
+        })
+        return
+      }
+
       const imageFile = await resolveImageFile()
       if (!imageFile) {
         throw new Error('No hay imagen disponible.')
@@ -133,29 +146,44 @@ function HairTryOnLab({
         window.clearTimeout(timeoutId)
       }
 
+      const data = await response.json()
       if (!response.ok) {
         throw new Error(`Servicio no disponible (${response.status})`)
       }
-      const data = await response.json()
+
+      if (data?.advanced_available === false && data?.fallback_available) {
+        setAdvancedUnavailable(true)
+        await handleLocalSimulation({
+          statusMessage: 'Simulación avanzada no disponible. Se generó una vista previa local.',
+        })
+        return
+      }
+
       if (!data?.exito || !data?.preview_data_url) {
         throw new Error('Respuesta inválida')
       }
 
+      setAdvancedUnavailable(false)
       setPreviewSrc(data.preview_data_url)
       setStatusText('Resultado generado')
+      setLastModeUsed('advanced')
     } catch (_err) {
       setAdvancedUnavailable(true)
-      setStatusText('')
-      await handleLocalSimulation()
+      await handleLocalSimulation({
+        statusMessage: 'Simulación avanzada no disponible. Se generó una vista previa local.',
+      })
     } finally {
       setIsGenerating(false)
     }
   }
 
-  const handleLocalSimulation = async () => {
+  const handleLocalSimulation = async (options = {}) => {
+    const { statusMessage = 'Resultado generado' } = options
     if (!imageSrc) return
-    setIsGenerating(true)
-    setStatusText('Generando vista previa de cabello')
+    if (!isGenerating) {
+      setIsGenerating(true)
+      setStatusText('Generando vista previa de cabello')
+    }
 
     try {
       const imageFile = await resolveImageFile()
@@ -175,7 +203,8 @@ function HairTryOnLab({
       if (!data?.exito || !data?.preview_data_url) throw new Error('Respuesta inválida')
 
       setPreviewSrc(data.preview_data_url)
-      setStatusText('Resultado generado')
+      setStatusText(statusMessage)
+      setLastModeUsed('local')
     } catch (_err) {
       setStatusText('')
     } finally {
@@ -333,10 +362,17 @@ function HairTryOnLab({
               Resultado generado
             </span>
           )}
+          {!isGenerating &&
+            statusText === 'Simulación avanzada no disponible. Se generó una vista previa local.' && (
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-cyan-300/20 bg-cyan-500/[0.08] text-cyan-200/90">
+                <CheckCircle2 className="w-3 h-3" />
+                Simulación avanzada no disponible. Se generó una vista previa local.
+              </span>
+            )}
         </div>
       )}
 
-      {advancedUnavailable && (
+      {advancedUnavailable && lastModeUsed !== 'local' && (
         <div className="rounded-xl border border-amber-300/20 bg-amber-500/[0.08] p-4 space-y-2">
           <p className="text-sm text-amber-100/90 font-medium">
             La simulación avanzada no está disponible en este momento.
